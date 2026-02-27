@@ -3,19 +3,19 @@
 FieldType detectType(char* str)
 {
     if (str == NULL || *str == '\0') {
-        return TYPE_NONE;
+        return TypeNone;
     }
     char* ptr;
     strtod(str, &ptr);
     if (ptr == str) {
-        return TYPE_STRING;
+        return TypeString;
     }
 
     while (isspace((unsigned char)*ptr)) {
         ptr++;
     }
 
-    return (*ptr == '\0') ? TYPE_NUMBER : TYPE_STRING;
+    return (*ptr == '\0') ? TypeNumber : TypeString;
 }
 
 Field* makeField(char* line, size_t end, size_t start, size_t fieldInd)
@@ -26,7 +26,7 @@ Field* makeField(char* line, size_t end, size_t start, size_t fieldInd)
     }
     size_t len = end - start;
     if (len == 0) {
-        field->type = TYPE_NONE;
+        field->type = TypeNone;
         field->colNum = fieldInd;
         return field;
     }

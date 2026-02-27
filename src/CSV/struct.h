@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-typedef enum { TYPE_NUMBER, TYPE_STRING, TYPE_NONE } FieldType;
+typedef enum { TypeNumber, TypeString, TypeNone } FieldType;
 
 typedef struct {
     char* field; // ссылка на string

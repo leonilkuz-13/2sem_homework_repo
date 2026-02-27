@@ -18,13 +18,13 @@ FieldType detectType(char* str)
     return (*ptr == '\0') ? TYPE_NUMBER : TYPE_STRING;
 }
 
-Field* makeField(char* line, size_t ind, size_t lenField, size_t fieldInd)
+Field* makeField(char* line, size_t end, size_t start, size_t fieldInd)
 {
     Field* field = initField();
     if (field == NULL) {
         return NULL;
     }
-    size_t len = ind - lenField;
+    size_t len = end - start;
     if (len == 0) {
         field->type = TYPE_NONE;
         field->colNum = fieldInd;
@@ -33,10 +33,10 @@ Field* makeField(char* line, size_t ind, size_t lenField, size_t fieldInd)
 
     char* fieldStr = malloc(sizeof(char) * (len + 1));
     if (fieldStr == NULL) {
-        free(field); // нужна очистка field в целом?
+        free(field);
         return NULL;
     }
-    memcpy(fieldStr, line + lenField, len);
+    memcpy(fieldStr, line + start, len);
     fieldStr[len] = '\0';
     field->field = fieldStr;
     field->colNum = fieldInd;
@@ -50,16 +50,17 @@ Field* makeField(char* line, size_t ind, size_t lenField, size_t fieldInd)
 void parse(Row* row, char* line)
 {
     size_t len = strlen(line);
-    // просто подсчет, при парсе логика сложнее будет
     size_t fieldCnt = 0;
     bool flag = false;
+    // проход len включительно не выдаст ошибку, поскольку indCntField+1 не может быть на позиции
+    // line[len] (для себя)
     for (size_t indCntField = 0; indCntField <= len; indCntField++) {
         if (line[indCntField] == '"') {
             if (flag == false) {
-                flag = true; // открыли скобку
+                flag = true;
             } else {
                 if (line[indCntField + 1] == '"') {
-                    indCntField++; // принудительно сдвинули
+                    indCntField++;
                 } else {
                     flag = false;
                 }
@@ -71,7 +72,7 @@ void parse(Row* row, char* line)
 
     // вкидываем ошибку в строку и не делаем парсинг
     if (flag == true) {
-        row->error = false;
+        row->error = true;
         return;
     }
 

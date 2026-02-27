@@ -5,5 +5,5 @@
 #include <stdbool.h>
 
 FieldType detectType(char* str);
-Field* makeField(char* line, size_t ind, size_t lenField, size_t indexCol);
+Field* makeField(char* line, size_t end, size_t start, size_t indexCol);
 void parse(Row* row, char* line);

@@ -47,7 +47,7 @@ Field* makeField(char* line, size_t end, size_t start, size_t fieldInd)
 }
 
 //
-void parse(Row* row, char* line)
+bool parse(Row* row, char* line)
 {
     size_t len = strlen(line);
     size_t fieldCnt = 0;
@@ -73,12 +73,12 @@ void parse(Row* row, char* line)
     // вкидываем ошибку в строку и не делаем парсинг
     if (flag == true) {
         row->error = true;
-        return;
+        return false;
     }
 
     row->field = malloc(sizeof(Field) * fieldCnt);
     if (row->field == NULL) {
-        return;
+        return false;
     }
     row->fieldCnt = fieldCnt;
 
@@ -111,7 +111,7 @@ void parse(Row* row, char* line)
             Field* field = makeField(line, endSymbol, start, fieldInd);
             if (field == NULL) {
                 clearRow(row);
-                return;
+                return false;
             }
             row->field[fieldInd] = *field;
             free(field);

@@ -9,7 +9,7 @@ Field* initField()
     field->colNum = -1;
     field->field = NULL;
     field->len = 0;
-    field->type = TYPE_NONE;
+    field->type = TypeNone;
 
     return field;
 }
@@ -30,17 +30,39 @@ Row* initRow(size_t index)
 
 void clearRow(Row* row)
 {
-    while (row->fieldCnt != 0) {
-        size_t len = row->fieldCnt;
-        for (size_t index = 0; index < len; index++) {
-            if (index != row->field->colNum) {
-                continue;
-            } else {
-                free(row->field);
-                row->fieldCnt--;
-                break;
-            }
-        }
+    if (row == NULL) {
+        return;
     }
+
+    for (size_t index = 0; index < row->fieldCnt; index++) {
+        Field* currentField = &row->field[index];
+        free(currentField->field);
+    }
+    free(row->field);
     free(row);
+}
+
+Board* initBoard()
+{
+    Board* board = malloc(sizeof(Board));
+    if (board == NULL) {
+        return NULL;
+    }
+
+    board->maxCol = 0;
+    board->rowsCnt = 0;
+    board->rows = NULL;
+
+    return board;
+}
+
+void ClearBoard(Board* board)
+{
+    if (board == NULL) {
+        return;
+    }
+    for (size_t index = 0; index < board->rowsCnt; index++) {
+        clearRow(&board->rows[index]);
+    }
+    free(board);
 }

@@ -21,7 +21,7 @@ typedef struct {
 } Row;
 
 typedef struct {
-    Row* rows;      //  ссылка на строки
+    Row** rows;     //  ссылка на строки
     size_t rowsCnt; // итерация по строкам
     size_t maxCol; // максимальное колиечество полей, в совокопнуости с type для выравнивания
 } Board;

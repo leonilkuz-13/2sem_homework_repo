@@ -24,7 +24,7 @@ Row* initRow(size_t index)
     row->field = NULL;
     row->fieldCnt = 0;
     row->num = index;
-    row->error = true;
+    row->error = false;
     return row;
 }
 

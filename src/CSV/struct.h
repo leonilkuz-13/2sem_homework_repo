@@ -10,7 +10,7 @@ typedef struct {
     char* field; // ссылка на string
     size_t len; // длина поля для итерации (мб будет полезно для выравнивания)
     FieldType type; // тип
-    size_t colNum;  // номер столбца
+    int colNum;     // номер столбца
 } Field;
 
 typedef struct {

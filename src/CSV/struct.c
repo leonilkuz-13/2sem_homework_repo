@@ -28,18 +28,19 @@ Row* initRow(size_t index)
     return row;
 }
 
-void clearRow(Row* row)
+void clearRow(Row** row)
 {
-    if (row == NULL) {
+    if (row == NULL || *row == NULL) {
         return;
     }
 
-    for (size_t index = 0; index < row->fieldCnt; index++) {
-        Field* currentField = &row->field[index];
+    for (size_t index = 0; index < (*row)->fieldCnt; index++) {
+        Field* currentField = &(*row)->field[index];
         free(currentField->field);
     }
-    free(row->field);
-    free(row);
+    free((*row)->field);
+    free(*row);
+    *row = NULL;
 }
 
 Board* initBoard()
@@ -56,13 +57,15 @@ Board* initBoard()
     return board;
 }
 
-void ClearBoard(Board* board)
+void clearBoard(Board** board)
 {
-    if (board == NULL) {
+    if (board == NULL || *board == NULL) {
         return;
     }
-    for (size_t index = 0; index < board->rowsCnt; index++) {
-        clearRow(&board->rows[index]);
+    for (size_t index = 0; index < (*board)->rowsCnt; index++) {
+        clearRow(&(*board)->rows[index]);
     }
-    free(board);
+    free((*board)->rows);
+    free(*board);
+    *board = NULL;
 }

@@ -62,7 +62,7 @@ void graphics(Board* board)
         return;
     }
     for (size_t index = 0; index < board->rowsCnt; index++) {
-        Row* row = &board->rows[index];
+        Row* row = board->rows[index];
         for (size_t col = 0; col < board->maxCol; col++) {
             Field* found = NULL;
             for (size_t ind = 0; ind < row->fieldCnt; ind++) {

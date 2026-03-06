@@ -52,7 +52,7 @@ bool makeboard(Board* board)
         if (row == NULL) {
             free(line);
             for (size_t index = 0; index < numStr; index++) {
-                clearRow(rows[index]);
+                clearRow(&rows[index]);
             }
             free(rows);
             fclose(file);
@@ -61,7 +61,7 @@ bool makeboard(Board* board)
         if (!parse(row, line)) {
             free(line);
             for (size_t index = 0; index < numStr; index++) {
-                clearRow(rows[index]);
+                clearRow(&rows[index]);
             }
             free(rows);
             fclose(file);

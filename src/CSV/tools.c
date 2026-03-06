@@ -37,7 +37,7 @@ char* read(FILE* file)
     return Buff;
 }
 
-bool Makeboard(Board* board)
+bool makeboard(Board* board)
 {
     FILE* file = fopen("input.csv", "r");
     if (file == NULL) {

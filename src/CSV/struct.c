@@ -6,7 +6,7 @@ Field* initField()
     if (field == NULL) {
         return NULL;
     }
-    field->colNum = -1;
+    field->colNum = 0;
     field->field = NULL;
     field->len = 0;
     field->type = TypeNone;

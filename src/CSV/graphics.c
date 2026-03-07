@@ -48,7 +48,7 @@ void graphics(Board* board)
 {
     size_t* widths = maxFieldWidth(board);
     if (widths == NULL) {
-        clearBoard(board);
+        clearBoard(&board);
         return;
     }
     FILE* file = fopen("output.txt", "w");

@@ -110,7 +110,7 @@ bool parse(Row* row, char* line)
 
             Field* field = makeField(line, endSymbol, start, fieldInd);
             if (field == NULL) {
-                clearRow(row);
+                clearRow(&row);
                 return false;
             }
             row->field[fieldInd] = *field;
@@ -119,4 +119,5 @@ bool parse(Row* row, char* line)
             start = index + 1;
         }
     }
+    return true;
 }

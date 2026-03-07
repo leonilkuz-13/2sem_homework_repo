@@ -72,7 +72,7 @@ bool makeboard(Board* board)
         if (newRows == NULL) {
             free(line);
             for (size_t index = 0; index < numStr; index++) {
-                clearRow(rows[index]);
+                clearRow(&rows[index]);
             }
             free(rows);
             fclose(file);

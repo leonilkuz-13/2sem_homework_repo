@@ -42,6 +42,8 @@ static bool handleQuote(const char* line, size_t pos, size_t len, bool* insideQu
 
 static bool parseFields(Row* row, const char* line, size_t fieldCnt, size_t len) // NOLINT
 {
+    (void)fieldCnt; // параметр не используется, но сохранён для совместимости
+
     size_t fieldInd = 0;
     size_t start = 0;
     size_t end = 0;

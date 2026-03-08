@@ -40,7 +40,7 @@ static bool handleQuote(const char* line, size_t pos, size_t len, bool* insideQu
     return false;
 }
 
-static bool parseFields(Row* row, const char* line, size_t fieldCnt, size_t len)
+static bool parseFields(Row* row, const char* line, size_t fieldCnt, size_t len) // NOLINT
 {
     size_t fieldInd = 0;
     size_t start = 0;

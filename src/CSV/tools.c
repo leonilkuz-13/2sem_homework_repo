@@ -1,40 +1,43 @@
-#include <tools.h>
+#include "tools.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 char* read(FILE* file)
 {
     size_t capacity = 100;
     size_t len = 0;
-    char* Buff = malloc(capacity);
-    if (Buff == NULL) {
+    char* buffer = malloc(capacity);
+    if (buffer == NULL) {
         return NULL;
     }
 
-    int var = 0;
-    while ((var = fgetc(file)) != EOF) {
+    int ch = 0; // тут clang не понравилось var...
+    while ((ch = fgetc(file)) != EOF) {
         if (len + 1 >= capacity) {
             capacity *= 2;
-            char* newBuff = realloc(Buff, capacity);
-            if (newBuff == NULL) {
-                free(Buff);
+            char* newBuffer = realloc(buffer, capacity); // newBuff -> newBuffer (это тоже смешно)
+            if (newBuffer == NULL) {
+                free(buffer);
                 return NULL;
             }
-            Buff = newBuff;
+            buffer = newBuffer;
         }
 
-        Buff[len++] = (char)var;
+        buffer[len++] = (char)ch;
 
-        if (var == '\n') {
+        if (ch == '\n') {
             break;
         }
     }
 
-    if (len == 0 && var == EOF) { // пустую строчку же можно?
-        free(Buff);
+    if (len == 0 && ch == EOF) {
+        free(buffer);
         return NULL;
     }
 
-    Buff[len] = '\0';
-    return Buff;
+    buffer[len] = '\0';
+    return buffer;
 }
 
 bool makeboard(Board* board)
@@ -44,9 +47,10 @@ bool makeboard(Board* board)
         return false;
     }
     char* line;
-    size_t maxCol = 0; // максимальное количество полей в структуре
-    size_t numStr = 0; // для количества строк и номер строки
-    Row** rows = NULL; // буду собирать строку сначала, а потом запихну ее в board
+    size_t maxCol = 0;
+    size_t numStr = 0;
+    Row** rows = NULL;
+
     while ((line = read(file)) != NULL) {
         Row* row = initRow(numStr);
         if (row == NULL) {
@@ -54,8 +58,8 @@ bool makeboard(Board* board)
             for (size_t index = 0; index < numStr; index++) {
                 clearRow(&rows[index]);
             }
-            free(rows);
-            fclose(file);
+            free((void*)rows);
+            (void)fclose(file); // насчет такого приведения типов надо пообщаться с Ю.В.
             return false;
         }
         if (!parse(row, line)) {
@@ -63,23 +67,24 @@ bool makeboard(Board* board)
             for (size_t index = 0; index < numStr; index++) {
                 clearRow(&rows[index]);
             }
-            free(rows);
-            fclose(file);
+            free((void*)rows);
+            (void)fclose(file);
             return false;
         }
         maxCol = (row->fieldCnt > maxCol) ? row->fieldCnt : maxCol;
-        Row** newRows = realloc(rows, (numStr + 1) * sizeof(Row*)); // копирую с помощью realloc
+
+        Row** newRows = (Row**)realloc((void*)rows, (numStr + 1) * sizeof(Row*));
         if (newRows == NULL) {
             free(line);
             for (size_t index = 0; index < numStr; index++) {
                 clearRow(&rows[index]);
             }
-            free(rows);
-            fclose(file);
+            free((void*)rows);
+            (void)fclose(file);
             return false;
         }
         rows = newRows;
-        rows[numStr++] = row; // индексация с нуля
+        rows[numStr++] = row;
         free(line);
     }
 
@@ -87,15 +92,16 @@ bool makeboard(Board* board)
     board->rowsCnt = numStr;
     board->maxCol = maxCol;
 
-    fclose(file);
+    (void)fclose(file);
     return true;
 }
 
 size_t* maxFieldWidth(Board* board)
 {
     size_t* widths = calloc(board->maxCol, sizeof(size_t));
-    if (widths == NULL)
+    if (widths == NULL) {
         return NULL;
+    }
 
     for (size_t index = 0; index < board->rowsCnt; index++) {
         Row* row = board->rows[index];

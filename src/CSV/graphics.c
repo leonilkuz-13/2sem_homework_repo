@@ -1,49 +1,58 @@
-#include "tools.h"
-bool ordinaryLine(FILE* file, size_t* widths, Board* board, char symbol)
+#include "graphics.h"
+#include <stdio.h>
+#include <stdlib.h>
+
+bool ordinaryLine(FILE* file, const size_t* widths, Board* board, char symbol)
 {
     if (widths == NULL || board == NULL || (symbol != '-' && symbol != '=')) {
         return false;
     }
-    fputc('+', file);
+    (void)fputc('+', file);
     for (size_t index = 0; index < board->maxCol; index++) {
         for (size_t ind = 0; ind < widths[index]; ind++) {
-            fputc(symbol, file);
+            (void)fputc(symbol, file);
         }
-        fputc('+', file);
+        (void)fputc('+', file);
     }
-    fputc('\n', file);
+    (void)fputc('\n', file);
     return true;
 }
+
 bool writeField(FILE* file, Field* field, size_t col)
 {
     if (file == NULL) {
         return false;
     }
-    fputc('|', file);
+    (void)fputc('|', file);
     if (field == NULL) {
-        for (size_t i = 0; i < col; i++)
-            fputc(' ', file);
-        fputc('|', file);
+        for (size_t i = 0; i < col; i++) {
+            (void)fputc(' ', file);
+        }
+        (void)fputc('|', file);
         return true;
     }
     size_t len = field->len;
     if (field->type == TypeNumber) {
         size_t padding = col - len;
         for (size_t index = 0; index < col; index++) {
-            if (index < padding)
-                fputc(' ', file);
-            else
-                fputc(field->field[index - padding], file);
+            if (index < padding) {
+                (void)fputc(' ', file);
+            } else {
+                (void)fputc(field->field[index - padding], file);
+            }
         }
     } else {
-        for (size_t index = 0; index < len; index++)
-            fputc(field->field[index], file);
-        for (size_t index = len; index < col; index++)
-            fputc(' ', file);
+        for (size_t index = 0; index < len; index++) {
+            (void)fputc(field->field[index], file);
+        }
+        for (size_t index = len; index < col; index++) {
+            (void)fputc(' ', file);
+        }
     }
-    fputc('|', file);
+    (void)fputc('|', file);
     return true;
 }
+
 void graphics(Board* board)
 {
     size_t* widths = maxFieldWidth(board);
@@ -57,7 +66,7 @@ void graphics(Board* board)
         return;
     }
     if (!ordinaryLine(file, widths, board, '=')) {
-        fclose(file);
+        (void)fclose(file);
         free(widths);
         return;
     }
@@ -72,18 +81,18 @@ void graphics(Board* board)
                 }
             }
             if (!writeField(file, found, widths[col])) {
-                fclose(file);
+                (void)fclose(file);
                 free(widths);
                 return;
             }
         }
-        fputc('\n', file);
+        (void)fputc('\n', file);
     }
     if (!ordinaryLine(file, widths, board, '-')) {
-        fclose(file);
+        (void)fclose(file);
         free(widths);
         return;
     }
-    fclose(file);
+    (void)fclose(file);
     free(widths);
 }

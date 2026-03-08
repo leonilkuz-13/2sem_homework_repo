@@ -9,8 +9,8 @@ char* read(FILE* file)
         return NULL;
     }
 
-    int ch = 0; // тут clang не понравилось var...
-    while ((ch = fgetc(file)) != EOF) {
+    int var = 0;
+    while ((var = fgetc(file)) != EOF) {
         if (len + 1 >= capacity) {
             capacity *= 2;
             char* newBuffer = realloc(buffer, capacity); // newBuff -> newBuffer (это тоже смешно)
@@ -21,14 +21,14 @@ char* read(FILE* file)
             buffer = newBuffer;
         }
 
-        buffer[len++] = (char)ch;
+        buffer[len++] = (char)var;
 
-        if (ch == '\n') {
+        if (var == '\n') {
             break;
         }
     }
 
-    if (len == 0 && ch == EOF) {
+    if (len == 0 && var == EOF) {
         free(buffer);
         return NULL;
     }

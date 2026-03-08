@@ -1,51 +1,5 @@
 #include "parser.h"
 
-FieldType detectType(char* str)
-{
-    if (str == NULL || *str == '\0') {
-        return TypeNone;
-    }
-    char* ptr;
-    (void)strtod(str, &ptr);
-    if (ptr == str) {
-        return TypeString;
-    }
-
-    while (isspace((unsigned char)*ptr)) {
-        ptr++;
-    }
-
-    return (*ptr == '\0') ? TypeNumber : TypeString;
-}
-
-Field* makeField(char* line, size_t start, size_t end, size_t fieldInd)
-{
-    Field* field = initField();
-    if (field == NULL) {
-        return NULL;
-    }
-    size_t len = end - start;
-    if (len == 0) {
-        field->type = TypeNone;
-        field->colNum = fieldInd;
-        return field;
-    }
-
-    char* fieldStr = malloc(sizeof(char) * (len + 1));
-    if (fieldStr == NULL) {
-        free(field);
-        return NULL;
-    }
-    memcpy(fieldStr, line + start, len);
-    fieldStr[len] = '\0';
-    field->field = fieldStr;
-    field->colNum = fieldInd;
-    field->len = len;
-    field->type = detectType(fieldStr);
-
-    return field;
-}
-
 static size_t countFields(const char* line, size_t len, bool* unbalanced)
 {
     size_t count = 0;
@@ -69,7 +23,26 @@ static size_t countFields(const char* line, size_t len, bool* unbalanced)
     return count;
 }
 
-static bool parseFields(Row* row, const char* line, size_t len, size_t fieldCnt)
+static bool handleQuote(const char* line, size_t pos, size_t len, bool* insideQuotes, size_t* start,
+                        size_t* end, bool* hasEnd)
+{
+    if (!*insideQuotes) {
+        *insideQuotes = true;
+        *start = pos + 1;
+        return false;
+    } else {
+        if (pos + 1 <= len && line[pos + 1] == '"') {
+            return true;
+        } else {
+            *insideQuotes = false;
+            *end = pos;
+            *hasEnd = true;
+            return false;
+        }
+    }
+}
+
+static bool parseFields(Row* row, const char* line, size_t fieldCnt, size_t len)
 {
     size_t fieldInd = 0;
     size_t start = 0;
@@ -79,32 +52,23 @@ static bool parseFields(Row* row, const char* line, size_t len, size_t fieldCnt)
 
     for (size_t pos = 0; pos <= len; ++pos) {
         if (line[pos] == '"') {
-            if (!insideQuotes) {
-                insideQuotes = true;
-                start = pos + 1;
-            } else {
-                if (pos + 1 <= len && line[pos + 1] == '"') {
-                    ++pos;
-                } else {
-                    insideQuotes = false;
-                    end = pos;
-                    hasEnd = true;
-                }
+            if (handleQuote(line, pos, len, &insideQuotes, &start, &end, &hasEnd)) {
+                pos++;
             }
         } else if ((line[pos] == ',' && !insideQuotes) || line[pos] == '\0') {
             size_t endSymbol = hasEnd ? end : pos;
 
             Field* field = makeField((char*)line, start, endSymbol, fieldInd);
             if (field == NULL) {
-                for (size_t index = 0; index < fieldInd; index++) {
-                    free(row->field[index].field);
+                for (size_t idx = 0; idx < fieldInd; idx++) {
+                    free(row->field[idx].field);
                 }
                 free(row->field);
                 return false;
             }
             row->field[fieldInd] = *field;
             free(field);
-            fieldInd++;
+            ++fieldInd;
             start = pos + 1;
             hasEnd = false;
         }
@@ -112,28 +76,61 @@ static bool parseFields(Row* row, const char* line, size_t len, size_t fieldCnt)
     return true;
 }
 
+FieldType detectType(char* str)
+{
+    if (str == NULL || *str == '\0')
+        return TypeNone;
+    char* ptr;
+    (void)strtod(str, &ptr);
+    if (ptr == str)
+        return TypeString;
+    while (isspace((unsigned char)*ptr))
+        ++ptr;
+    return (*ptr == '\0') ? TypeNumber : TypeString;
+}
+
+Field* makeField(char* line, size_t start, size_t end, size_t fieldInd)
+{
+    Field* field = initField();
+    if (!field)
+        return NULL;
+    size_t len = end - start;
+    if (len == 0) {
+        field->type = TypeNone;
+        field->colNum = fieldInd;
+        return field;
+    }
+    char* fieldStr = malloc(len + 1);
+    if (!fieldStr) {
+        free(field);
+        return NULL;
+    }
+    memcpy(fieldStr, line + start, len);
+    fieldStr[len] = '\0';
+    field->field = fieldStr;
+    field->colNum = fieldInd;
+    field->len = len;
+    field->type = detectType(fieldStr);
+    return field;
+}
+
 bool parse(Row* row, char* line)
 {
     size_t len = strlen(line);
     bool unbalanced;
     size_t fieldCnt = countFields(line, len, &unbalanced);
-
     if (unbalanced) {
         row->error = true;
         return false;
     }
-
     if (fieldCnt == 0) {
         row->field = NULL;
         row->fieldCnt = 0;
         return true;
     }
-
     row->field = malloc(sizeof(Field) * fieldCnt);
-    if (row->field == NULL) {
+    if (!row->field)
         return false;
-    }
     row->fieldCnt = fieldCnt;
-
-    return parseFields(row, line, len, fieldCnt);
+    return parseFields(row, line, fieldCnt, len);
 }

@@ -30,3 +30,4 @@ Field* initField();
 Row* initRow(size_t index);
 void clearRow(Row** row);
 void clearBoard(Board** board);
+Board* initBoard();

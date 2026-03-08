@@ -65,7 +65,7 @@ void clearBoard(Board** board)
     for (size_t index = 0; index < (*board)->rowsCnt; index++) {
         clearRow(&(*board)->rows[index]);
     }
-    free((*board)->rows);
+    free((void*)(*board)->rows);
     free(*board);
     *board = NULL;
 }

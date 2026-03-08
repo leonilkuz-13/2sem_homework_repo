@@ -6,7 +6,7 @@ FieldType detectType(char* str)
         return TypeNone;
     }
     char* ptr;
-    strtod(str, &ptr);
+    (void)strtod(str, &ptr);
     if (ptr == str) {
         return TypeString;
     }
@@ -18,7 +18,7 @@ FieldType detectType(char* str)
     return (*ptr == '\0') ? TypeNumber : TypeString;
 }
 
-Field* makeField(char* line, size_t end, size_t start, size_t fieldInd)
+Field* makeField(char* line, size_t start, size_t end, size_t fieldInd)
 {
     Field* field = initField();
     if (field == NULL) {
@@ -46,34 +46,87 @@ Field* makeField(char* line, size_t end, size_t start, size_t fieldInd)
     return field;
 }
 
-//
+static size_t countFields(const char* line, size_t len, bool* unbalanced)
+{
+    size_t count = 0;
+    bool inQuotes = false;
+    for (size_t pos = 0; pos <= len; ++pos) {
+        if (line[pos] == '"') {
+            if (!inQuotes) {
+                inQuotes = true;
+            } else {
+                if (pos + 1 <= len && line[pos + 1] == '"') {
+                    ++pos;
+                } else {
+                    inQuotes = false;
+                }
+            }
+        } else if ((line[pos] == ',' && !inQuotes) || line[pos] == '\0') {
+            ++count;
+        }
+    }
+    *unbalanced = inQuotes;
+    return count;
+}
+
+static bool parseFields(Row* row, const char* line, size_t len, size_t fieldCnt)
+{
+    size_t fieldInd = 0;
+    size_t start = 0;
+    size_t end = 0;
+    bool hasEnd = false;
+    bool insideQuotes = false;
+
+    for (size_t pos = 0; pos <= len; ++pos) {
+        if (line[pos] == '"') {
+            if (!insideQuotes) {
+                insideQuotes = true;
+                start = pos + 1;
+            } else {
+                if (pos + 1 <= len && line[pos + 1] == '"') {
+                    ++pos;
+                } else {
+                    insideQuotes = false;
+                    end = pos;
+                    hasEnd = true;
+                }
+            }
+        } else if ((line[pos] == ',' && !insideQuotes) || line[pos] == '\0') {
+            size_t endSymbol = hasEnd ? end : pos;
+
+            Field* field = makeField((char*)line, start, endSymbol, fieldInd);
+            if (field == NULL) {
+                for (size_t index = 0; index < fieldInd; index++) {
+                    free(row->field[index].field);
+                }
+                free(row->field);
+                return false;
+            }
+            row->field[fieldInd] = *field;
+            free(field);
+            fieldInd++;
+            start = pos + 1;
+            hasEnd = false;
+        }
+    }
+    return true;
+}
+
 bool parse(Row* row, char* line)
 {
     size_t len = strlen(line);
-    size_t fieldCnt = 0;
-    bool flag = false;
-    // проход len включительно не выдаст ошибку, поскольку indCntField+1 не может быть на позиции
-    // line[len] (для себя)
-    for (size_t indCntField = 0; indCntField <= len; indCntField++) {
-        if (line[indCntField] == '"') {
-            if (flag == false) {
-                flag = true;
-            } else {
-                if (line[indCntField + 1] == '"') {
-                    indCntField++;
-                } else {
-                    flag = false;
-                }
-            }
-        } else if ((line[indCntField] == ',' && flag == false) || line[indCntField] == '\0') {
-            fieldCnt++;
-        }
-    }
+    bool unbalanced;
+    size_t fieldCnt = countFields(line, len, &unbalanced);
 
-    // вкидываем ошибку в строку и не делаем парсинг
-    if (flag == true) {
+    if (unbalanced) {
         row->error = true;
         return false;
+    }
+
+    if (fieldCnt == 0) {
+        row->field = NULL;
+        row->fieldCnt = 0;
+        return true;
     }
 
     row->field = malloc(sizeof(Field) * fieldCnt);
@@ -82,42 +135,5 @@ bool parse(Row* row, char* line)
     }
     row->fieldCnt = fieldCnt;
 
-    size_t fieldInd = 0;
-    size_t start = 0;
-    int end = -1;
-    bool inside = 0;
-    for (size_t index = 0; index <= len; index++) {
-        if (line[index] == '"') {
-            if (inside == false) {
-                inside = true;
-                start = index + 1;
-            } else {
-                if (line[index + 1] == '"') {
-                    index++;
-                } else {
-                    inside = false;
-                    end = index;
-                }
-            }
-        } else if ((line[index] == ',' && inside == false) || line[index] == '\0') {
-            size_t endSymbol;
-            if (end != -1) {
-                endSymbol = end;
-                end = -1;
-            } else {
-                endSymbol = index;
-            }
-
-            Field* field = makeField(line, endSymbol, start, fieldInd);
-            if (field == NULL) {
-                clearRow(&row);
-                return false;
-            }
-            row->field[fieldInd] = *field;
-            free(field);
-            fieldInd++;
-            start = index + 1;
-        }
-    }
-    return true;
+    return parseFields(row, line, len, fieldCnt);
 }

@@ -1,6 +1,4 @@
 #include "struct.h"
-#include <stdio.h>
-#include <stdbool.h>
 
 bool testInitField()
 {
@@ -40,25 +38,23 @@ bool testInitRow()
     return valid;
 }
 
-// обычная ситуация для clearRow()
 bool testClearRow()
 {
     Row* row = initRow(0);
-    if (!row)
+    if (!row) {
         return false;
+    }
 
     row->fieldCnt = 1;
-    row->field = malloc(sizeof(Field));
+    row->field = (Field*)malloc(sizeof(Field));
     if (!row->field) {
         free(row);
         return false;
     }
-    row->field[0].field = malloc(10);
+    row->field[0].field = (char*)malloc(10);
     row->field[0].len = 0;
     row->field[0].type = TypeNone;
     row->field[0].colNum = 0;
-
-    Field* oldField = row->field;
 
     clearRow(&row);
 
@@ -72,7 +68,6 @@ bool testClearRow()
     return valid;
 }
 
-// Тест clearRow с NULL
 bool testClearRowNull()
 {
     Row* row = NULL;
@@ -81,12 +76,12 @@ bool testClearRowNull()
     return true;
 }
 
-// Тест clearRow с уже очищенной строкой
 bool testClearRowTwice()
 {
     Row* row = initRow(0);
-    if (!row)
+    if (!row) {
         return false;
+    }
     clearRow(&row);
     clearRow(&row);
     puts("testClearRowTwice passed");
@@ -110,22 +105,22 @@ bool testInitBoard()
     return valid;
 }
 
-// Тесты для clearBoard()
 bool testClearBoard()
 {
     Board* board = initBoard();
-    if (!board)
+    if (!board) {
         return false;
+    }
 
     board->rowsCnt = 1;
-    board->rows = malloc(sizeof(Row*));
+    board->rows = (Row**)malloc(sizeof(Row*));
     if (!board->rows) {
         free(board);
         return false;
     }
     board->rows[0] = initRow(0);
     if (!board->rows[0]) {
-        free(board->rows);
+        free((void*)board->rows);
         free(board);
         return false;
     }
@@ -153,8 +148,9 @@ bool testClearBoardNull()
 bool testClearBoardTwice()
 {
     Board* board = initBoard();
-    if (!board)
+    if (!board) { // добавлены скобки
         return false;
+    }
     clearBoard(&board);
     clearBoard(&board);
     puts("testClearBoardTwice passed");

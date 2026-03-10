@@ -11,9 +11,16 @@ char* read(FILE* file)
 
     int var = 0;
     while ((var = fgetc(file)) != EOF) {
-        if (len + 1 >= capacity) {
+        if (var == '\r') {
+            continue;
+        }
+        if (var == '\n') {
+            break;
+        }
+
+        if (len + 2 >= capacity) {
             capacity *= 2;
-            char* newBuffer = realloc(buffer, capacity); // newBuff -> newBuffer (это тоже смешно)
+            char* newBuffer = realloc(buffer, capacity);
             if (newBuffer == NULL) {
                 free(buffer);
                 return NULL;
@@ -39,45 +46,56 @@ char* read(FILE* file)
 
 bool makeboard(Board* board)
 {
+    printf("makeboard: opening file input.csv\n");
     FILE* file = fopen("input.csv", "r");
     if (file == NULL) {
+        printf("makeboard: cannot open file\n");
         return false;
     }
+    printf("makeboard: file opened successfully\n");
+
     char* line;
     size_t maxCol = 0;
     size_t numStr = 0;
     Row** rows = NULL;
 
     while ((line = read(file)) != NULL) {
+        printf("makeboard: read line: %s\n", line);
+
         Row* row = initRow(numStr);
         if (row == NULL) {
+            printf("makeboard: initRow failed for line %zu\n", numStr);
             free(line);
             for (size_t index = 0; index < numStr; index++) {
                 clearRow(&rows[index]);
             }
             free((void*)rows);
-            (void)fclose(file); // насчет такого приведения типов надо пообщаться с Ю.В.
+            fclose(file);
             return false;
         }
-        if (!parse(row, line)) {
+        printf("makeboard: calling parse for line %zu\n", numStr);
+        if (!parse(&row, line)) {
+            printf("makeboard: parse FAILED for line: %s\n", line);
             free(line);
             for (size_t index = 0; index < numStr; index++) {
                 clearRow(&rows[index]);
             }
             free((void*)rows);
-            (void)fclose(file);
+            fclose(file);
             return false;
         }
+        printf("makeboard: parse OK, fieldCnt = %zu\n", row->fieldCnt);
         maxCol = (row->fieldCnt > maxCol) ? row->fieldCnt : maxCol;
 
         Row** newRows = (Row**)realloc((void*)rows, (numStr + 1) * sizeof(Row*));
         if (newRows == NULL) {
+            printf("makeboard: realloc failed for line %zu\n", numStr);
             free(line);
             for (size_t index = 0; index < numStr; index++) {
                 clearRow(&rows[index]);
             }
             free((void*)rows);
-            (void)fclose(file);
+            fclose(file);
             return false;
         }
         rows = newRows;
@@ -85,16 +103,20 @@ bool makeboard(Board* board)
         free(line);
     }
 
+    printf("makeboard: finished reading, total rows = %zu, max columns = %zu\n", numStr, maxCol);
     board->rows = rows;
     board->rowsCnt = numStr;
     board->maxCol = maxCol;
 
-    (void)fclose(file);
+    fclose(file);
     return true;
 }
 
 size_t* maxFieldWidth(Board* board)
 {
+    if (board->maxCol == 0 || board == NULL) {
+        return NULL;
+    }
     size_t* widths = calloc(board->maxCol, sizeof(size_t));
     if (widths == NULL) {
         return NULL;

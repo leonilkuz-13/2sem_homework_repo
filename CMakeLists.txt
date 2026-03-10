@@ -31,3 +31,6 @@ add_executable(test_struct ${TEST_DIR}/test_struct.c)
 target_link_libraries(test_struct csv_lib)
 target_include_directories(test_struct PRIVATE ${CODE_DIR})
 
+add_executable(test_parser ${TEST_DIR}/test_parser.c)
+target_link_libraries(test_parser csv_lib)
+target_include_directories(test_parser PRIVATE ${CODE_DIR})

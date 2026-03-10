@@ -27,22 +27,26 @@ static size_t countFields(const char* line, size_t len, bool* unbalanced)
     bool inQuotes = false;
     *unbalanced = false;
     for (size_t pos = 0; pos < len; pos++) {
-        if (line[pos] == '"') {
-            if (pos + 1 < len && line[pos + 1] == '"') {
-                pos++;
-            } else {
-                inQuotes = !inQuotes;
-                pos++;
+        if (inQuotes) {
+            if (line[pos] == '"') {
+                if (pos + 1 < len && line[pos + 1] == '"') {
+                    pos++;
+                } else {
+                    inQuotes = false;
+                }
             }
-        } else if (line[pos] == ',' && !inQuotes) {
-            count++;
+        } else {
+            if (line[pos] == '"') {
+                inQuotes = true;
+            } else if (line[pos] == ',') {
+                count++;
+            }
         }
     }
 
     *unbalanced = inQuotes;
 
-    // случай (d,d,d,) я хотел считать в 4 поля. В окончательной версии решил убрать, ориентируясь
-    // на популярные библиотеки. (скинутый стандарт вообще ничего про это не говорит)
+    // случай (d,d,d,) я хотел считать в 4 поля.
     /*if (line[len - 1] == ',' && !inQuotes) {
     //    count++;
     }*/
@@ -52,7 +56,7 @@ static size_t countFields(const char* line, size_t len, bool* unbalanced)
 
 static bool appendBuffer(char** current, size_t* len, size_t* capacity, char symbol)
 {
-    if (*len + 1 >= capacity) {
+    if (*len + 1 >= *capacity) {
         *capacity = (*capacity == 0) ? 16 : *capacity * 2;
         char* newCurrent = realloc(*current, *capacity);
         if (newCurrent == NULL) {
@@ -69,33 +73,50 @@ static bool appendBuffer(char** current, size_t* len, size_t* capacity, char sym
     return true;
 }
 
+static bool cleanBuffer(char** current, size_t* len, size_t* capacity, Row* row)
+{
+    if (*current) {
+        free(*current);
+        *current = NULL;
+    }
+    *len = 0;
+    *capacity = 0;
+    row->error = true;
+    return false;
+}
+
 static void commitField(Row* row, size_t* idx, char** current, size_t* len, size_t* capacity)
 {
     Field* field = &row->field[*idx];
 
     if (*current != NULL && *len > 0) {
+        if (*len + 1 > *capacity) {
+            *capacity = (*capacity == 0) ? 16 : *capacity * 2;
+            char* ptr = realloc(*current, *capacity);
+            if (ptr == NULL) {
+                cleanBuffer(current, len, capacity, row);
+                return;
+            }
+            *current = ptr;
+        }
         (*current)[*len] = '\0';
         field->field = *current;
         field->len = *len;
     } else {
+        if (*current)
+            free(*current);
         field->field = strdup("");
+        if (field->field == NULL) {
+            cleanBuffer(current, len, capacity, row);
+            return;
+        }
         field->len = 0;
-        *current = NULL;
     }
     field->type = detectType(field->field);
     field->colNum = (*idx)++;
     *capacity = 0;
     *len = 0;
     *current = NULL;
-}
-
-static bool cleanBuffer(char** current, Row* row)
-{
-    if (current) {
-        free(*current);
-    }
-    row->error = true;
-    return !row->error;
 }
 
 static bool parseFields(Row* row, const char* line, size_t len)
@@ -105,87 +126,93 @@ static bool parseFields(Row* row, const char* line, size_t len)
     size_t capacityCurrent = 0;
     size_t idx = 0;
     bool insideQuoted = false;
-    bool success = true;
 
     for (size_t pos = 0; pos <= len; pos++) {
         char symbol = (pos < len) ? line[pos] : '\0';
+
         if (insideQuoted) {
             if (symbol == '"') {
                 if (pos + 1 < len && line[pos + 1] == '"') {
                     if (!appendBuffer(&current, &lenCurrent, &capacityCurrent, '"')) {
-                        success = false;
-                        return cleanBuffer(&current, row);
+                        cleanBuffer(&current, &lenCurrent, &capacityCurrent, row);
+                        return false;
                     }
                     pos++;
-                    continue;
                 } else {
                     insideQuoted = false;
-                    commitField(row, &idx, &current, &lenCurrent, &capacityCurrent);
-                    continue;
+                    if (pos + 1 < len && line[pos + 1] != ',' && line[pos + 1] != '\0') {
+                        cleanBuffer(&current, &lenCurrent, &capacityCurrent, row);
+                        row->error = true;
+                        return false;
+                    }
                 }
+            } else if (symbol == '\0') {
+                cleanBuffer(&current, &lenCurrent, &capacityCurrent, row);
+                row->error = true;
+                return false;
             } else {
                 if (!appendBuffer(&current, &lenCurrent, &capacityCurrent, symbol)) {
-                    success = false;
-                    return cleanBuffer(&current, row);
+                    cleanBuffer(&current, &lenCurrent, &capacityCurrent, row);
+                    return false;
                 }
             }
         } else {
             if (symbol == '"') {
-                insideQuoted = true;
-                continue;
-            }
-
-            if (symbol == ',' || symbol == '\0') {
-                commitField(row, &idx, &current, &lenCurrent, &capacityCurrent);
-
-                if (symbol == '\0') {
-                    break;
+                if (lenCurrent > 0) {
+                    cleanBuffer(&current, &lenCurrent, &capacityCurrent, row);
+                    row->error = true;
+                    return false;
                 }
-                continue;
-            }
-            if (!appendBuffer(&current, &lenCurrent, &capacityCurrent, symbol)) {
-                success = false;
-                cleanBuffer(&current, row);
+                insideQuoted = true;
+            } else if (symbol == ',' || symbol == '\0') {
+                commitField(row, &idx, &current, &lenCurrent, &capacityCurrent);
+            } else {
+                if (!appendBuffer(&current, &lenCurrent, &capacityCurrent, symbol)) {
+                    cleanBuffer(&current, &lenCurrent, &capacityCurrent, row);
+                    return false;
+                }
             }
         }
     }
 
-    if (success && (lenCurrent > 0 || idx == 0)) {
-        commitField(row, &idx, &current, &lenCurrent, &capacityCurrent);
-    }
-
     if (insideQuoted) {
-        success = false;
+        cleanBuffer(&current, &lenCurrent, &capacityCurrent, row);
         row->error = true;
+        return false;
     }
 
-    row->fieldCnt = idx;
-    return success;
+    return true;
 }
 
-bool parse(Row* row, char* line)
+bool parse(Row** row, char* line)
 {
+    if (row == NULL)
+        return false;
+    Row* ptr = *row;
+
     size_t len = strlen(line);
     if (len == 0) {
-        row->fieldCnt = 0;
-        row->field = NULL;
+        ptr->fieldCnt = 0;
+        ptr->field = NULL;
         return true;
     }
+
     bool unbalanced;
     size_t fieldCnt = countFields(line, len, &unbalanced);
     if (unbalanced) {
-        row->error = true;
         return false;
     }
-    if (fieldCnt == 0) {
-        row->field = NULL;
-        row->fieldCnt = 0;
-        return true;
-    }
-    row->field = malloc(sizeof(Field) * fieldCnt);
-    if (!row->field) {
+
+    ptr->field = (Field*)malloc(fieldCnt * sizeof(Field));
+    if (ptr->field == NULL) {
         return false;
     }
-    row->fieldCnt = fieldCnt;
-    return parseFields(row, line, len);
+    ptr->fieldCnt = 0;
+    bool success = parseFields(ptr, line, len);
+    if (!success) {
+        clearRow(row);
+        return false;
+    }
+    ptr->fieldCnt = fieldCnt;
+    return true;
 }

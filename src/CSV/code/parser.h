@@ -4,4 +4,4 @@
 #include <string.h>
 
 FieldType detectType(char* str);
-bool parse(Row* row, char* line);
+bool parse(Row** row, char* line);

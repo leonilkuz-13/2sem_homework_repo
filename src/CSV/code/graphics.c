@@ -1,6 +1,4 @@
 #include "graphics.h"
-#include <stdio.h>
-#include <stdlib.h>
 
 bool ordinaryLine(FILE* file, const size_t* widths, Board* board, char symbol)
 {
@@ -23,7 +21,7 @@ bool writeField(FILE* file, Field* field, size_t col)
     if (file == NULL) {
         return false;
     }
-    (void)fputc('|', file);
+
     if (field == NULL) {
         for (size_t i = 0; i < col; i++) {
             (void)fputc(' ', file);
@@ -31,6 +29,7 @@ bool writeField(FILE* file, Field* field, size_t col)
         (void)fputc('|', file);
         return true;
     }
+
     size_t len = field->len;
     if (field->type == TypeNumber) {
         size_t padding = col - len;
@@ -49,6 +48,7 @@ bool writeField(FILE* file, Field* field, size_t col)
             (void)fputc(' ', file);
         }
     }
+
     (void)fputc('|', file);
     return true;
 }
@@ -60,18 +60,42 @@ void graphics(Board* board)
         clearBoard(&board);
         return;
     }
+
     FILE* file = fopen("output.txt", "w");
     if (file == NULL) {
         free(widths);
         return;
     }
+
     if (!ordinaryLine(file, widths, board, '=')) {
         (void)fclose(file);
         free(widths);
         return;
     }
-    for (size_t index = 0; index < board->rowsCnt; index++) {
-        Row* row = board->rows[index];
+
+    Row* header = board->rows[0];
+    fputc('|', file);
+    for (size_t col = 0; col < board->maxCol; col++) {
+        Field* found = NULL;
+        for (size_t index = 0; index < header->fieldCnt; index++) {
+            if (header->field[index].colNum == col) {
+                found = &header->field[index];
+                break;
+            }
+        }
+        writeField(file, found, widths[col]);
+    }
+    fputc('\n', file);
+
+    if (!ordinaryLine(file, widths, board, '=')) {
+        (void)fclose(file);
+        free(widths);
+        return;
+    }
+
+    for (size_t idx = 1; idx < board->rowsCnt; idx++) {
+        Row* row = board->rows[idx];
+        fputc('|', file);
         for (size_t col = 0; col < board->maxCol; col++) {
             Field* found = NULL;
             for (size_t ind = 0; ind < row->fieldCnt; ind++) {
@@ -80,19 +104,12 @@ void graphics(Board* board)
                     break;
                 }
             }
-            if (!writeField(file, found, widths[col])) {
-                (void)fclose(file);
-                free(widths);
-                return;
-            }
+            writeField(file, found, widths[col]);
         }
-        (void)fputc('\n', file);
+        fputc('\n', file);
+        ordinaryLine(file, widths, board, '-');
     }
-    if (!ordinaryLine(file, widths, board, '-')) {
-        (void)fclose(file);
-        free(widths);
-        return;
-    }
-    (void)fclose(file);
+
+    fclose(file);
     free(widths);
 }

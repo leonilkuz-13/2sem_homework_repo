@@ -74,7 +74,7 @@ void graphics(Board* board)
     }
 
     Row* header = board->rows[0];
-    fputc('|', file);
+    (void)fputc('|', file);
     for (size_t col = 0; col < board->maxCol; col++) {
         Field* found = NULL;
         for (size_t index = 0; index < header->fieldCnt; index++) {
@@ -85,7 +85,7 @@ void graphics(Board* board)
         }
         writeField(file, found, widths[col]);
     }
-    fputc('\n', file);
+    (void)fputc('\n', file);
 
     if (!ordinaryLine(file, widths, board, '=')) {
         (void)fclose(file);
@@ -95,7 +95,7 @@ void graphics(Board* board)
 
     for (size_t idx = 1; idx < board->rowsCnt; idx++) {
         Row* row = board->rows[idx];
-        fputc('|', file);
+        (void)fputc('|', file);
         for (size_t col = 0; col < board->maxCol; col++) {
             Field* found = NULL;
             for (size_t ind = 0; ind < row->fieldCnt; ind++) {
@@ -106,10 +106,10 @@ void graphics(Board* board)
             }
             writeField(file, found, widths[col]);
         }
-        fputc('\n', file);
+        (void)fputc('\n', file);
         ordinaryLine(file, widths, board, '-');
     }
 
-    fclose(file);
+    (void)fclose(file);
     free(widths);
 }

@@ -3,14 +3,17 @@
 static bool checkField(Field* field, const char* expectedStr, FieldType expectedType,
                        size_t expectedCol)
 {
-    if (!field)
+    if (!field) {
         return false;
+    }
     if (expectedStr == NULL) {
-        if (field->field != NULL)
+        if (field->field != NULL) {
             return false;
+        }
     } else {
-        if (!field->field || strcmp(field->field, expectedStr) != 0)
+        if (!field->field || strcmp(field->field, expectedStr) != 0) {
             return false;
+        }
     }
     return (field->type == expectedType && field->colNum == expectedCol);
 }
@@ -56,147 +59,179 @@ bool testDetectType()
         allPassed = false;
     }
 
-    if (allPassed)
+    if (allPassed) {
         puts("testDetectType passed");
-    else
+    } else {
         puts("testDetectType failed");
+    }
     return allPassed;
+}
+
+bool testParseSimple1()
+{
+    Row* row = initRow(0);
+    bool success = true;
+
+    if (!parse(&row, "a,b,c")) {
+        success = false;
+    } else {
+        if (row->fieldCnt != 3 || !checkField(&row->field[0], "a", TypeString, 0)
+            || !checkField(&row->field[1], "b", TypeString, 1)
+            || !checkField(&row->field[2], "c", TypeString, 2)) {
+            success = false;
+        }
+    }
+    clearRow(&row);
+    row = initRow(0);
+
+    if (!parse(&row, "123,45.6,hello")) {
+        success = false;
+    } else {
+        if (row->fieldCnt != 3 || !checkField(&row->field[0], "123", TypeNumber, 0)
+            || !checkField(&row->field[1], "45.6", TypeNumber, 1)
+            || !checkField(&row->field[2], "hello", TypeString, 2)) {
+            success = false;
+        }
+    }
+    clearRow(&row);
+    row = initRow(0);
+
+    if (!parse(&row, ",,")) {
+        success = false;
+    } else {
+        if (row->fieldCnt != 3 || !checkField(&row->field[0], "", TypeNone, 0)
+            || !checkField(&row->field[1], "", TypeNone, 1)
+            || !checkField(&row->field[2], "", TypeNone, 2)) {
+            success = false;
+        }
+    }
+    clearRow(&row);
+    return success;
+}
+
+bool testParseSimple2()
+{
+    Row* row = initRow(0);
+    bool success = true;
+
+    if (!parse(&row, " 123 , abc ")) {
+        success = false;
+    } else {
+        if (row->fieldCnt != 2 || !checkField(&row->field[0], " 123 ", TypeNumber, 0)
+            || !checkField(&row->field[1], " abc ", TypeString, 1)) {
+            success = false;
+        }
+    }
+    clearRow(&row);
+    row = initRow(0);
+
+    if (!parse(&row, "one")) {
+        success = false;
+    } else {
+        if (row->fieldCnt != 1 || !checkField(&row->field[0], "one", TypeString, 0)) {
+            success = false;
+        }
+    }
+    clearRow(&row);
+    row = initRow(0);
+
+    if (!parse(&row, "")) {
+        success = false;
+    } else {
+        if (row->fieldCnt != 0 || row->field != NULL) {
+            success = false;
+        }
+    }
+    clearRow(&row);
+    row = initRow(0);
+
+    if (!parse(&row, "a,")) {
+        success = false;
+    } else {
+        if (row->fieldCnt != 2 || !checkField(&row->field[0], "a", TypeString, 0)
+            || !checkField(&row->field[1], "", TypeNone, 1)) {
+            success = false;
+        }
+    }
+    clearRow(&row);
+    return success;
 }
 
 bool testParseSimple()
 {
-    Row* row = initRow(0);
-    bool success = true;
+    bool success = testParseSimple1() && testParseSimple2();
 
-    if (!parse(&row, "a,b,c"))
-        success = false;
-    else {
-        if (row->fieldCnt != 3 || !checkField(&row->field[0], "a", TypeString, 0)
-            || !checkField(&row->field[1], "b", TypeString, 1)
-            || !checkField(&row->field[2], "c", TypeString, 2))
-            success = false;
-    }
-    clearRow(&row);
-    row = initRow(0);
-
-    if (!parse(&row, "123,45.6,hello"))
-        success = false;
-    else {
-        if (row->fieldCnt != 3 || !checkField(&row->field[0], "123", TypeNumber, 0)
-            || !checkField(&row->field[1], "45.6", TypeNumber, 1)
-            || !checkField(&row->field[2], "hello", TypeString, 2))
-            success = false;
-    }
-    clearRow(&row);
-    row = initRow(0);
-
-    if (!parse(&row, ",,"))
-        success = false;
-    else {
-        if (row->fieldCnt != 3 || !checkField(&row->field[0], "", TypeNone, 0)
-            || !checkField(&row->field[1], "", TypeNone, 1)
-            || !checkField(&row->field[2], "", TypeNone, 2))
-            success = false;
-    }
-    clearRow(&row);
-    row = initRow(0);
-
-    if (!parse(&row, " 123 , abc "))
-        success = false;
-    else {
-        if (row->fieldCnt != 2 || !checkField(&row->field[0], " 123 ", TypeNumber, 0)
-            || !checkField(&row->field[1], " abc ", TypeString, 1))
-            success = false;
-    }
-    clearRow(&row);
-    row = initRow(0);
-
-    if (!parse(&row, "one"))
-        success = false;
-    else {
-        if (row->fieldCnt != 1 || !checkField(&row->field[0], "one", TypeString, 0))
-            success = false;
-    }
-    clearRow(&row);
-    row = initRow(0);
-
-    if (!parse(&row, ""))
-        success = false;
-    else {
-        if (row->fieldCnt != 0 || row->field != NULL)
-            success = false;
-    }
-    clearRow(&row);
-    row = initRow(0);
-
-    if (!parse(&row, "a,"))
-        success = false;
-    else {
-        if (row->fieldCnt != 2 || !checkField(&row->field[0], "a", TypeString, 0)
-            || !checkField(&row->field[1], "", TypeNone, 1))
-            success = false;
-    }
-    clearRow(&row);
-
-    if (success)
+    if (success) {
         puts("testParseSimple passed");
-    else
+    } else {
         puts("testParseSimple failed");
+    }
     return success;
 }
 
-bool testParseQuoted()
+bool testParseQuoted1()
 {
     Row* row = initRow(0);
     bool success = true;
 
-    if (!parse(&row, "\"hello\",world"))
+    if (!parse(&row, "\"hello\",world")) {
         success = false;
-    else {
+    } else {
         if (row->fieldCnt != 2 || !checkField(&row->field[0], "hello", TypeString, 0)
-            || !checkField(&row->field[1], "world", TypeString, 1))
+            || !checkField(&row->field[1], "world", TypeString, 1)) {
             success = false;
+        }
     }
     clearRow(&row);
     row = initRow(0);
 
-    if (!parse(&row, "\"\"\"hello\"\"\",world"))
+    if (!parse(&row, "\"\"\"hello\"\"\",world")) {
         success = false;
-    else {
+    } else {
         if (row->fieldCnt != 2 || !checkField(&row->field[0], "\"hello\"", TypeString, 0)
-            || !checkField(&row->field[1], "world", TypeString, 1))
+            || !checkField(&row->field[1], "world", TypeString, 1)) {
             success = false;
+        }
     }
     clearRow(&row);
     row = initRow(0);
 
-    if (!parse(&row, "\"  hello  \",world"))
+    if (!parse(&row, "\"  hello  \",world")) {
         success = false;
-    else {
+    } else {
         if (row->fieldCnt != 2 || !checkField(&row->field[0], "  hello  ", TypeString, 0)
-            || !checkField(&row->field[1], "world", TypeString, 1))
+            || !checkField(&row->field[1], "world", TypeString, 1)) {
             success = false;
+        }
     }
     clearRow(&row);
-    row = initRow(0);
+    return success;
+}
 
-    if (!parse(&row, "\"\",next"))
+bool testParseQuoted2()
+{
+    Row* row = initRow(0);
+    bool success = true;
+
+    if (!parse(&row, "\"\",next")) {
         success = false;
-    else {
+    } else {
         if (row->fieldCnt != 2 || !checkField(&row->field[0], "", TypeNone, 0)
-            || !checkField(&row->field[1], "next", TypeString, 1))
+            || !checkField(&row->field[1], "next", TypeString, 1)) {
             success = false;
+        }
     }
     clearRow(&row);
     row = initRow(0);
 
-    if (!parse(&row, "a,\"b\",c"))
+    if (!parse(&row, "a,\"b\",c")) {
         success = false;
-    else {
+    } else {
         if (row->fieldCnt != 3 || !checkField(&row->field[0], "a", TypeString, 0)
             || !checkField(&row->field[1], "b", TypeString, 1)
-            || !checkField(&row->field[2], "c", TypeString, 2))
+            || !checkField(&row->field[2], "c", TypeString, 2)) {
             success = false;
+        }
     }
     clearRow(&row);
     row = initRow(0);
@@ -206,12 +241,18 @@ bool testParseQuoted()
         success = false;
     }
     clearRow(&row);
-    row = initRow(0);
 
-    if (success)
+    return success;
+}
+
+bool testParseQuoted()
+{
+    bool success = testParseQuoted1() && testParseQuoted2();
+    if (success) {
         puts("testParseQuoted passed");
-    else
+    } else {
         puts("testParseQuoted failed");
+    }
     return success;
 }
 
@@ -233,10 +274,11 @@ bool testParseError()
     }
     clearRow(&row);
 
-    if (success)
+    if (success) {
         puts("testParseError passed");
-    else
+    } else {
         puts("testParseError failed");
+    }
     return success;
 }
 
@@ -247,13 +289,16 @@ bool testParseEdge()
 
     {
         char* longLine = (char*)malloc(2000);
-        if (!longLine)
+        if (!longLine) {
             return false;
-        for (int i = 0; i < 500; i++)
+        }
+        for (int i = 0; i < 500; i++) {
             longLine[i] = 'a';
+        }
         longLine[500] = ',';
-        for (int i = 501; i < 1001; i++)
+        for (int i = 501; i < 1001; i++) {
             longLine[i] = 'b';
+        }
         longLine[1001] = '\0';
         if (!parse(&row, longLine)) {
             puts("testParseEdge 1 (long line) failed");
@@ -302,15 +347,17 @@ bool testParseEdge()
     } else {
         if (row->fieldCnt != 4 || strcmp(row->field[0].field, "") != 0
             || strcmp(row->field[1].field, "") != 0 || strcmp(row->field[2].field, "") != 0
-            || strcmp(row->field[3].field, "") != 0)
+            || strcmp(row->field[3].field, "") != 0) {
             success = false;
+        }
     }
     clearRow(&row);
 
-    if (success)
+    if (success) {
         puts("testParseEdge passed");
-    else
+    } else {
         puts("testParseEdge failed");
+    }
     return success;
 }
 

@@ -45,16 +45,10 @@ static size_t countFields(const char* line, size_t len, bool* unbalanced)
     }
 
     *unbalanced = inQuotes;
-
-    // случай (d,d,d,) я хотел считать в 4 поля.
-    /*if (line[len - 1] == ',' && !inQuotes) {
-    //    count++;
-    }*/
-
     return count;
 }
 
-static bool appendBuffer(char** current, size_t* len, size_t* capacity, char symbol)
+static bool appendBuffer(char** current, size_t* len, char symbol, size_t* capacity)
 {
     if (*len + 1 >= *capacity) {
         *capacity = (*capacity == 0) ? 16 : *capacity * 2;
@@ -73,7 +67,7 @@ static bool appendBuffer(char** current, size_t* len, size_t* capacity, char sym
     return true;
 }
 
-static bool cleanBuffer(char** current, size_t* len, size_t* capacity, Row* row)
+static bool cleanBuffer(char** current, size_t* len, Row* row, size_t* capacity)
 {
     if (*current) {
         free(*current);
@@ -85,7 +79,7 @@ static bool cleanBuffer(char** current, size_t* len, size_t* capacity, Row* row)
     return false;
 }
 
-static void commitField(Row* row, size_t* idx, char** current, size_t* len, size_t* capacity)
+static bool commitField(size_t* idx, char** current, size_t* len, Row* row, size_t* capacity)
 {
     Field* field = &row->field[*idx];
 
@@ -94,8 +88,7 @@ static void commitField(Row* row, size_t* idx, char** current, size_t* len, size
             *capacity = (*capacity == 0) ? 16 : *capacity * 2;
             char* ptr = realloc(*current, *capacity);
             if (ptr == NULL) {
-                cleanBuffer(current, len, capacity, row);
-                return;
+                return cleanBuffer(current, len, row, capacity);
             }
             *current = ptr;
         }
@@ -103,12 +96,12 @@ static void commitField(Row* row, size_t* idx, char** current, size_t* len, size
         field->field = *current;
         field->len = *len;
     } else {
-        if (*current)
+        if (*current) {
             free(*current);
+        }
         field->field = strdup("");
         if (field->field == NULL) {
-            cleanBuffer(current, len, capacity, row);
-            return;
+            return cleanBuffer(current, len, row, capacity);
         }
         field->len = 0;
     }
@@ -117,6 +110,53 @@ static void commitField(Row* row, size_t* idx, char** current, size_t* len, size
     *capacity = 0;
     *len = 0;
     *current = NULL;
+    return true;
+}
+
+static bool handleQuotedChar(char symbol, const char* line, size_t len, size_t* pos, char** current,
+                             size_t* lenCurrent, Row* row, size_t* capacityCurrent,
+                             bool* insideQuoted)
+{
+    if (symbol == '"') {
+        if (*pos + 1 < len && line[*pos + 1] == '"') {
+            if (!appendBuffer(current, lenCurrent, '"', capacityCurrent)) {
+                return cleanBuffer(current, lenCurrent, row, capacityCurrent);
+            }
+            (*pos)++;
+        } else {
+            *insideQuoted = false;
+            if (*pos + 1 < len && line[*pos + 1] != ',' && line[*pos + 1] != '\0') {
+                return cleanBuffer(current, lenCurrent, row, capacityCurrent);
+            }
+        }
+    } else if (symbol == '\0') {
+        return cleanBuffer(current, lenCurrent, row, capacityCurrent);
+    } else {
+        if (!appendBuffer(current, lenCurrent, symbol, capacityCurrent)) {
+            return cleanBuffer(current, lenCurrent, row, capacityCurrent);
+        }
+    }
+    return true;
+}
+
+static bool handleUnquotedChar(char symbol, Row* row, size_t* idx, char** current,
+                               size_t* lenCurrent, bool* insideQuoted, size_t* capacityCurrent)
+{
+    if (symbol == '"') {
+        if (*lenCurrent > 0) {
+            return cleanBuffer(current, lenCurrent, row, capacityCurrent);
+        }
+        *insideQuoted = true;
+    } else if (symbol == ',' || symbol == '\0') {
+        if (!commitField(idx, current, lenCurrent, row, capacityCurrent)) {
+            return false;
+        }
+    } else {
+        if (!appendBuffer(current, lenCurrent, symbol, capacityCurrent)) {
+            return cleanBuffer(current, lenCurrent, row, capacityCurrent);
+        }
+    }
+    return true;
 }
 
 static bool parseFields(Row* row, const char* line, size_t len)
@@ -128,57 +168,23 @@ static bool parseFields(Row* row, const char* line, size_t len)
     bool insideQuoted = false;
 
     for (size_t pos = 0; pos <= len; pos++) {
-        char symbol = (pos < len) ? line[pos] : '\0';
+        char symbol = (char)((pos < len) ? line[pos] : '\0');
 
         if (insideQuoted) {
-            if (symbol == '"') {
-                if (pos + 1 < len && line[pos + 1] == '"') {
-                    if (!appendBuffer(&current, &lenCurrent, &capacityCurrent, '"')) {
-                        cleanBuffer(&current, &lenCurrent, &capacityCurrent, row);
-                        return false;
-                    }
-                    pos++;
-                } else {
-                    insideQuoted = false;
-                    if (pos + 1 < len && line[pos + 1] != ',' && line[pos + 1] != '\0') {
-                        cleanBuffer(&current, &lenCurrent, &capacityCurrent, row);
-                        row->error = true;
-                        return false;
-                    }
-                }
-            } else if (symbol == '\0') {
-                cleanBuffer(&current, &lenCurrent, &capacityCurrent, row);
-                row->error = true;
+            if (!handleQuotedChar(symbol, line, len, &pos, &current, &lenCurrent, row,
+                                  &capacityCurrent, &insideQuoted)) {
                 return false;
-            } else {
-                if (!appendBuffer(&current, &lenCurrent, &capacityCurrent, symbol)) {
-                    cleanBuffer(&current, &lenCurrent, &capacityCurrent, row);
-                    return false;
-                }
             }
         } else {
-            if (symbol == '"') {
-                if (lenCurrent > 0) {
-                    cleanBuffer(&current, &lenCurrent, &capacityCurrent, row);
-                    row->error = true;
-                    return false;
-                }
-                insideQuoted = true;
-            } else if (symbol == ',' || symbol == '\0') {
-                commitField(row, &idx, &current, &lenCurrent, &capacityCurrent);
-            } else {
-                if (!appendBuffer(&current, &lenCurrent, &capacityCurrent, symbol)) {
-                    cleanBuffer(&current, &lenCurrent, &capacityCurrent, row);
-                    return false;
-                }
+            if (!handleUnquotedChar(symbol, row, &idx, &current, &lenCurrent, &insideQuoted,
+                                    &capacityCurrent)) {
+                return false;
             }
         }
     }
 
     if (insideQuoted) {
-        cleanBuffer(&current, &lenCurrent, &capacityCurrent, row);
-        row->error = true;
-        return false;
+        return cleanBuffer(&current, &lenCurrent, row, &capacityCurrent);
     }
 
     return true;
@@ -186,8 +192,9 @@ static bool parseFields(Row* row, const char* line, size_t len)
 
 bool parse(Row** row, char* line)
 {
-    if (row == NULL)
+    if (row == NULL) {
         return false;
+    }
     Row* ptr = *row;
 
     size_t len = strlen(line);

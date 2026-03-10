@@ -70,7 +70,7 @@ bool makeboard(Board* board)
                 clearRow(&rows[index]);
             }
             free((void*)rows);
-            fclose(file);
+            (void)fclose(file);
             return false;
         }
         printf("makeboard: calling parse for line %zu\n", numStr);
@@ -81,7 +81,7 @@ bool makeboard(Board* board)
                 clearRow(&rows[index]);
             }
             free((void*)rows);
-            fclose(file);
+            (void)fclose(file);
             return false;
         }
         printf("makeboard: parse OK, fieldCnt = %zu\n", row->fieldCnt);
@@ -95,7 +95,7 @@ bool makeboard(Board* board)
                 clearRow(&rows[index]);
             }
             free((void*)rows);
-            fclose(file);
+            (void)fclose(file);
             return false;
         }
         rows = newRows;
@@ -108,7 +108,7 @@ bool makeboard(Board* board)
     board->rowsCnt = numStr;
     board->maxCol = maxCol;
 
-    fclose(file);
+    (void)fclose(file);
     return true;
 }
 

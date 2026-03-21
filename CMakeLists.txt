@@ -10,11 +10,15 @@ else()
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wpedantic")
 endif()
 
+set(CODE_DIR src/AVL-tree/code)
 set(TEST_DIR src/AVL-tree/tests)
 
-add_library(AVL_lib STATIC src/AVL-tree/code/AVL_tree.c)
-target_include_directories(AVL_lib PUBLIC src/AVL-tree/code)
+add_library(AVL_lib STATIC ${CODE_DIR}/AVL_tree.c)
+target_include_directories(AVL_lib PUBLIC ${CODE_DIR})
+
+add_executable(airport_utility ${CODE_DIR}/main.c)
+target_link_libraries(airport_utility AVL_lib)
 
 add_executable(test_AVL ${TEST_DIR}/tests.c)
 target_link_libraries(test_AVL AVL_lib)
-target_include_directories(test_AVL PRIVATE src/AVL-tree/code)
+target_include_directories(test_AVL PRIVATE ${CODE_DIR})

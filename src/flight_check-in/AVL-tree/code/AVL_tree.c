@@ -251,32 +251,27 @@ Node* delete(Node* root, const char* code, bool* error)
         return NULL;
     }
 
-    int value = strcmp(root->code, code);
-    if (value > 0) {
+    int cmp = strcmp(root->code, code);
+    if (cmp > 0) {
         root->left = delete (root->left, code, error);
-    } else if (value < 0) {
+    } else if (cmp < 0) {
         root->right = delete (root->right, code, error);
     } else {
+        *error = true;
         if (root->left == NULL || root->right == NULL) {
             Node* temp = root->left ? root->left : root->right;
             freeNode(root);
             return temp;
+        } else {
+            Node* temp = rootMin(root->right);
+            char* tmpCode = root->code;
+            char* tmpName = root->fullName;
+            root->code = temp->code;
+            root->fullName = temp->fullName;
+            temp->code = tmpCode;
+            temp->fullName = tmpName;
+            root->right = delete (root->right, temp->code, error);
         }
-
-        Node* temp = rootMin(root->right);
-
-        free(root->code);
-        free(root->fullName);
-        root->code = malloc(strlen(temp->code) + 1);
-        root->fullName = malloc(strlen(temp->fullName) + 1);
-
-        if (root->code && root->fullName) {
-            strcpy(root->code, temp->code);
-            strcpy(root->fullName, temp->fullName);
-        }
-
-        root->right = delete (root->right, temp->code, error);
     }
-
     return balance(root);
 }

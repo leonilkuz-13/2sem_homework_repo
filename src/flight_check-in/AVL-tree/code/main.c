@@ -80,20 +80,21 @@ void handleDelete(Avl* tree, char* cmd)
     }
 }
 
-void save(Node* root, FILE* fp)
+void save(Node* root, FILE* file)
 {
     if (!root) {
         return;
     }
-    save(root->left, fp);
-    fprintf(fp, "%s %s\n", root->code, root->fullName);
-    save(root->right, fp);
+
+    save(root->left, file);
+    fprintf(file, "%s %s\n", root->code, root->fullName);
+    save(root->right, file);
 }
 
 int main(int argc, char* argv[])
 {
     if (argc < 2) {
-        puts("Usage: ./utility <filename>");
+        puts("Usage: ./utility_airports ../src/airports.txt");
         return 1;
     }
 
@@ -106,17 +107,15 @@ int main(int argc, char* argv[])
 
     char cmd[256];
     while (true) {
-        printf("> ");
+        puts("> ");
         if (!fgets(cmd, sizeof(cmd), stdin)) {
             break;
         }
         cmd[strcspn(cmd, "\r\n")] = 0;
 
-        if (strcmp(cmd, "quit") == 0) {
+        if (strncmp(cmd, "quit", 4) == 0) {
             break;
-        }
-
-        if (strncmp(cmd, "find ", 5) == 0) {
+        } else if (strncmp(cmd, "find ", 5) == 0) {
             handleFind(tree, cmd);
         } else if (strncmp(cmd, "add ", 4) == 0) {
             handleAdd(tree, cmd);

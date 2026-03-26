@@ -30,10 +30,10 @@ static void siftDown(Heap* heap, int index)
         int left = 2 * index + 1;
         int right = left + 1;
         int small = index;
-        if (left < heap->len && heap->array[left].dist < heap->array[small].dist) {
+        if (left < (int)heap->len && heap->array[left].dist < heap->array[small].dist) {
             small = left;
         }
-        if (right < heap->len && heap->array[right].dist < heap->array[small].dist) {
+        if (right < (int)heap->len && heap->array[right].dist < heap->array[small].dist) {
             small = right;
         }
         if (small == index) {

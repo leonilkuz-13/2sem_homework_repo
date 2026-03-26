@@ -1,18 +1,18 @@
 #pragma once
 #include <stdio.h>
 
-typedef struct nodeHeap {
+typedef struct NodeHeap {
     int dist; // расстояние от связующего города
     int city; // номер города или как он будет интерпретирован в гос-ве
-} nodeHeap;
+} NodeHeap;
 
 typedef struct Heap {
     size_t capacity;
     size_t len;
-    nodeHeap* array; // массив
+    NodeHeap* array; // массив
 } Heap;
 
 Heap* initHeap();
 void pushHeap(Heap* heap, int dist, int city);
-nodeHeap popHeap(Heap* heap);
+NodeHeap popHeap(Heap* heap);
 void cleanHeap(Heap** heap);

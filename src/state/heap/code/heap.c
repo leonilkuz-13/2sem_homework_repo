@@ -11,7 +11,7 @@ Heap* initHeap()
     }
 
     heap->capacity = 32;
-    heap->array = malloc(sizeof(nodeHeap) * heap->capacity);
+    heap->array = malloc(sizeof(NodeHeap) * heap->capacity);
     if (heap->array == NULL) {
         free(heap);
         return NULL;
@@ -40,7 +40,7 @@ static void siftDown(Heap* heap, int index)
             break;
         }
 
-        nodeHeap temp = heap->array[index];
+        NodeHeap temp = heap->array[index];
         heap->array[index] = heap->array[small];
         heap->array[small] = temp;
         index = small;
@@ -59,7 +59,7 @@ static void siftUp(Heap* heap, int index)
             break;
         }
 
-        nodeHeap temp = heap->array[parent];
+        NodeHeap temp = heap->array[parent];
         heap->array[parent] = heap->array[index];
         heap->array[index] = temp;
         index = parent;
@@ -74,7 +74,7 @@ void pushHeap(Heap* heap, int dist, int city)
 
     if (heap->len == heap->capacity) {
         size_t newCap = heap->capacity * 2;
-        nodeHeap* newArr = realloc(heap->array, sizeof(nodeHeap) * newCap);
+        NodeHeap* newArr = realloc(heap->array, sizeof(NodeHeap) * newCap);
         if (newArr == NULL) {
             return;
         }
@@ -87,14 +87,14 @@ void pushHeap(Heap* heap, int dist, int city)
     siftUp(heap, (int)(heap->len - 1));
 }
 
-nodeHeap popHeap(Heap* heap)
+NodeHeap popHeap(Heap* heap)
 {
-    nodeHeap empty = { 0, 0 };
+    NodeHeap empty = { 0, 0 };
     if (heap == NULL || heap->len == 0) {
         return empty;
     }
 
-    nodeHeap nodeMin = heap->array[0];
+    NodeHeap nodeMin = heap->array[0];
     heap->array[0] = heap->array[heap->len - 1];
     heap->len--;
     siftDown(heap, 0);

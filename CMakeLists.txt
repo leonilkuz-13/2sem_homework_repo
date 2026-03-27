@@ -29,3 +29,13 @@ target_include_directories(Graph_lib PUBLIC ${CODE_GRAPH})
 add_executable(test_graph ${TEST_GRAPH}/tests_graph.c)
 target_link_libraries(test_graph Graph_lib)
 target_include_directories(test_graph PRIVATE ${CODE_GRAPH})
+
+add_executable(state src/state/state.c)
+target_link_libraries(state Heap_lib Graph_lib)
+target_include_directories(state PRIVATE ${CODE_HEAP} ${CODE_GRAPH})
+
+enable_testing()
+set(TEST_DATA_DIR "${CMAKE_SOURCE_DIR}/src/state")
+add_test(NAME TestBase      COMMAND state "${TEST_DATA_DIR}/test1.txt")
+add_test(NAME TestLine      COMMAND state "${TEST_DATA_DIR}/test2.txt")
+add_test(NAME TestStar      COMMAND state "${TEST_DATA_DIR}/test3.txt")

@@ -1,9 +1,10 @@
 #include "graph.h"
+#include <stdbool.h>
 #include <stdlib.h>
 
 Edge* initEdge(size_t dest, size_t weight)
 {
-    Edge* node = malloc(sizeof(Edge));
+    Edge* node = (Edge*)malloc(sizeof(Edge));
     if (node == NULL) {
         return NULL;
     }
@@ -16,21 +17,21 @@ Edge* initEdge(size_t dest, size_t weight)
 
 Graph* initGraph(size_t cntVertex) // количество городов передается в файле изнчально
 {
-    Graph* graph = malloc(sizeof(Graph));
+    Graph* graph = (Graph*)malloc(sizeof(Graph));
     if (graph == NULL) {
         return NULL;
     }
 
-    graph->lists = calloc(cntVertex, sizeof(Edge*));
+    graph->lists = (Edge**)calloc(cntVertex, sizeof(Edge*));
     if (graph->lists == NULL) {
-        free(graph);
+        free((void*)graph);
         return NULL;
     }
 
-    graph->numVertex = calloc(cntVertex, sizeof(size_t));
+    graph->numVertex = (size_t*)calloc(cntVertex, sizeof(size_t));
     if (graph->numVertex == NULL) {
-        free(graph->lists);
-        free(graph);
+        free((void*)graph->lists);
+        free((void*)graph);
         return NULL;
     }
     graph->cntVertex = cntVertex;
@@ -67,11 +68,11 @@ void cleanGraph(Graph** graph)
         while (current != NULL) {
             Edge* temp = current;
             current = current->next;
-            free(temp);
+            free((void*)temp);
         }
     }
-    free((*graph)->lists);
-    free((*graph)->numVertex);
-    free(*graph);
+    free((void*)(*graph)->lists);
+    free((void*)(*graph)->numVertex);
+    free((void*)*graph);
     *graph = NULL;
 }

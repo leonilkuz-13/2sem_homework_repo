@@ -44,7 +44,7 @@ void testInitGraph()
     if (graph != NULL) {
         checkInt("initGraph cntVertex", (int)vertices, (int)graph->cntVertex);
         checkPtrNotNull("initGraph lists array", graph->lists);
-        checkPtrNotNull("initGraph numVertex array", graph->numVertex);
+        checkPtrNotNull("initGraph numVertex array", (void*)graph->numVertex);
         checkPtrNull("initGraph first list is null", graph->lists[0]);
         cleanGraph(&graph);
         checkPtrNull("cleanGraph pointer null", graph);
@@ -54,11 +54,10 @@ void testInitGraph()
 void testAddEdgeSymmetry()
 {
     Graph* graph = initGraph(2);
-    for (size_t i = 0; i < graph->cntVertex; i++) {
-        graph->lists[i] = NULL;
-    }
+    bool err = false;
 
-    addEdge(graph, 0, 1, 10);
+    addEdge(graph, 0, 1, 10, &err);
+    checkInt("addEdge no error", 0, (int)err);
 
     checkPtrNotNull("edge 0->1 exists", graph->lists[0]);
     if (graph->lists[0] != NULL) {
@@ -78,12 +77,10 @@ void testAddEdgeSymmetry()
 void testMultipleEdges()
 {
     Graph* graph = initGraph(3);
-    for (size_t i = 0; i < graph->cntVertex; i++) {
-        graph->lists[i] = NULL;
-    }
+    bool err = false;
 
-    addEdge(graph, 0, 1, 5);
-    addEdge(graph, 0, 2, 15);
+    addEdge(graph, 0, 1, 5, &err);
+    addEdge(graph, 0, 2, 15, &err);
 
     int edgeCount = 0;
     Edge* current = graph->lists[0];
@@ -99,9 +96,6 @@ void testMultipleEdges()
 void testCleanGraphTwice()
 {
     Graph* graph = initGraph(2);
-    for (size_t i = 0; i < graph->cntVertex; i++) {
-        graph->lists[i] = NULL;
-    }
     cleanGraph(&graph);
     cleanGraph(&graph);
     checkPtrNull("cleanGraph twice", graph);

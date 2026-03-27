@@ -2,8 +2,8 @@
 #include <stdio.h>
 
 typedef struct NodeHeap {
-    int dist; // расстояние от связующего города
-    int city; // номер города или как он будет интерпретирован в гос-ве
+    int dist; // ребро до государства
+    int city; // номер города
 } NodeHeap;
 
 typedef struct Heap {

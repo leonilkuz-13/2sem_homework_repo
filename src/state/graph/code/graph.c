@@ -51,8 +51,7 @@ void addEdge(Graph* graph, size_t src, size_t dest, size_t weight,
     Edge* reverseEdge = initEdge(src, weight);
     if (reverseEdge == NULL) {
         *err = true;
-        graph->lists[src] = newEdge->next;
-        free(newEdge);
+        return;
     }
     reverseEdge->next = graph->lists[dest];
     graph->lists[dest] = reverseEdge;

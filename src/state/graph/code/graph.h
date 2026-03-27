@@ -18,5 +18,5 @@ typedef struct Graph {
 
 Edge* initEdge(size_t dest, size_t weight);
 Graph* initGraph(size_t cntVertex);
-void addEdge(Graph* graph, size_t src, size_t dest, size_t weight);
+void addEdge(Graph* graph, size_t src, size_t dest, size_t weight, bool* err);
 void cleanGraph(Graph** graph);

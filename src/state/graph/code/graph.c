@@ -37,10 +37,12 @@ Graph* initGraph(size_t cntVertex) // количество городов пер
     return graph;
 }
 
-void addEdge(Graph* graph, size_t src, size_t dest, size_t weight) // граф неоринтерованный
+void addEdge(Graph* graph, size_t src, size_t dest, size_t weight,
+             bool* err) // граф неоринтерованный
 {
     Edge* newEdge = initEdge(dest, weight);
     if (newEdge == NULL) {
+        *err = true;
         return;
     }
     newEdge->next = graph->lists[src];
@@ -48,6 +50,7 @@ void addEdge(Graph* graph, size_t src, size_t dest, size_t weight) // граф �
 
     Edge* reverseEdge = initEdge(src, weight);
     if (reverseEdge == NULL) {
+        *err = true;
         graph->lists[src] = newEdge->next;
         free(newEdge);
     }

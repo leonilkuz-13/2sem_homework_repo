@@ -36,8 +36,8 @@ Node* initNode(const char* code, const char* fullName)
         return NULL;
     }
 
-    strcpy(node->code, code);
-    strcpy(node->fullName, fullName);
+    memcpy(node->code, code, strlen(code) + 1);
+    memcpy(node->fullName, fullName, strlen(fullName) + 1);
 
     return node;
 }
@@ -262,16 +262,15 @@ Node* delete(Node* root, const char* code, bool* error)
             Node* temp = root->left ? root->left : root->right;
             freeNode(root);
             return temp;
-        } else {
-            Node* temp = rootMin(root->right);
-            char* tmpCode = root->code;
-            char* tmpName = root->fullName;
-            root->code = temp->code;
-            root->fullName = temp->fullName;
-            temp->code = tmpCode;
-            temp->fullName = tmpName;
-            root->right = delete (root->right, temp->code, error);
         }
+        Node* temp = rootMin(root->right);
+        char* tmpCode = root->code;
+        char* tmpName = root->fullName;
+        root->code = temp->code;
+        root->fullName = temp->fullName;
+        temp->code = tmpCode;
+        temp->fullName = tmpName;
+        root->right = delete (root->right, temp->code, error);
     }
     return balance(root);
 }

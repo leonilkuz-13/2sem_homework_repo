@@ -8,7 +8,6 @@ typedef struct Edge {
     size_t dest; // куда направлено ребро
     size_t weight;
     struct Edge* next;
-    bool busy;
 } Edge;
 
 typedef struct Graph {

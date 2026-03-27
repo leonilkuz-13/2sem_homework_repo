@@ -1,0 +1,24 @@
+cmake_minimum_required(VERSION 3.10)
+project(AVL)
+
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+
+if(MSVC)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W4")
+else()
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wpedantic")
+endif()
+
+set(CODE_DIR src/flight_check-in/AVL-tree/code)
+set(TEST_DIR src/flight_check-in/AVL-tree/tests)
+
+add_library(AVL_lib STATIC ${CODE_DIR}/AVL_tree.c)
+target_include_directories(AVL_lib PUBLIC ${CODE_DIR})
+
+add_executable(airport_utility ${CODE_DIR}/main.c)
+target_link_libraries(airport_utility AVL_lib)
+
+add_executable(test_AVL ${TEST_DIR}/tests.c)
+target_link_libraries(test_AVL AVL_lib)
+target_include_directories(test_AVL PRIVATE ${CODE_DIR})

@@ -1,8 +1,8 @@
 #include "graph.h"
 #include "heap.h"
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 
 int main(int argc, char* argv[])
 {
@@ -12,20 +12,20 @@ int main(int argc, char* argv[])
 
     FILE* file = fopen(argv[1], "r");
     if (file == NULL) {
-        printf("Ошибка: не удалось открыть файл %s\n", argv[1]);
+        (void)printf("Ошибка: не удалось открыть файл %s\n", argv[1]);
         return -1;
     }
 
     size_t cntVertex;
     size_t cntEdge;
     if (fscanf(file, "%zu %zu", &cntVertex, &cntEdge) != 2) {
-        fclose(file);
+        (void)fclose(file);
         return -1;
     }
 
-    int* visited = malloc(sizeof(int) * cntVertex);
+    int* visited = (int*)malloc(sizeof(int) * cntVertex);
     if (visited == NULL) {
-        fclose(file);
+        (void)fclose(file);
         return -1;
     }
     for (size_t index = 0; index < cntVertex; index++) {
@@ -35,7 +35,7 @@ int main(int argc, char* argv[])
     Graph* graph = initGraph(cntVertex);
     if (graph == NULL) {
         free(visited);
-        fclose(file);
+        (void)fclose(file);
         return -1;
     }
 
@@ -44,53 +44,55 @@ int main(int argc, char* argv[])
         size_t firstCity;
         size_t secondCity;
         size_t weight;
-        fscanf(file, "%zu %zu %zu", &firstCity, &secondCity, &weight);
+        (void)fscanf(file, "%zu %zu %zu", &firstCity, &secondCity, &weight);
         addEdge(graph, firstCity - 1, secondCity - 1, weight, &err);
         if (err == true) {
             cleanGraph(&graph);
             free(visited);
-            fclose(file);
+            (void)fclose(file);
             return -1;
         }
     }
 
     size_t cntCapital;
-    fscanf(file, "%zu", &cntCapital);
+    (void)fscanf(file, "%zu", &cntCapital);
 
-    size_t** states = malloc(sizeof(size_t*) * (cntCapital));
-    size_t* stateSizes = calloc(cntCapital, sizeof(size_t));
+    size_t** states = (size_t**)malloc(sizeof(size_t*) * (cntCapital));
+    size_t* stateSizes = (size_t*)calloc(cntCapital, sizeof(size_t));
     if (states == NULL || stateSizes == NULL) {
         free(states);
         free(stateSizes);
         cleanGraph(&graph);
         free(visited);
-        fclose(file);
+        (void)fclose(file);
         return -1;
     }
 
     for (size_t index = 0; index < cntCapital; index++) {
-        states[index] = malloc(sizeof(size_t) * cntVertex);
+        states[index] = (size_t*)malloc(sizeof(size_t) * cntVertex);
         if (states[index] == NULL) {
-            for (size_t ind = 0; ind < index; ind++)
+            for (size_t ind = 0; ind < index; ind++) {
                 free(states[ind]);
+            }
             free(states);
             free(stateSizes);
             cleanGraph(&graph);
             free(visited);
-            fclose(file);
+            (void)fclose(file);
             return -1;
         }
     }
 
-    Heap** heapsState = malloc(sizeof(Heap*) * cntCapital);
-    for (size_t index = 0; index < cntCapital; index++) {
-        heapsState[index] = initHeap();
+    Heap** heapsState = (Heap**)malloc(sizeof(Heap*) * cntCapital);
+    if (heapsState != NULL) {
+        for (size_t index = 0; index < cntCapital; index++) {
+            heapsState[index] = initHeap();
+        }
     }
 
-    // посчитал столицы отдельным циклом
     for (size_t index = 0; index < cntCapital; index++) {
         size_t cap;
-        fscanf(file, "%zu", &cap);
+        (void)fscanf(file, "%zu", &cap);
         size_t capIdx = cap - 1;
 
         visited[capIdx] = (int)index;
@@ -138,11 +140,11 @@ int main(int argc, char* argv[])
     }
 
     for (size_t index = 0; index < cntCapital; index++) {
-        printf("%zu: ", index + 1);
+        (void)printf("%zu: ", index + 1);
         for (size_t ind = 0; ind < stateSizes[index]; ind++) {
-            printf("%zu ", states[index][ind]);
+            (void)printf("%zu ", states[index][ind]);
         }
-        puts("");
+        (void)puts("");
     }
 
     for (size_t index = 0; index < cntCapital; index++) {
@@ -154,7 +156,7 @@ int main(int argc, char* argv[])
     free(stateSizes);
     free(visited);
     cleanGraph(&graph);
-    fclose(file);
+    (void)fclose(file);
 
     return 0;
 }

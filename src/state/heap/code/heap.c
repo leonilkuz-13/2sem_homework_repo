@@ -1,17 +1,17 @@
 #include "heap.h"
-#include <stdlib.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 Heap* initHeap()
 {
-    Heap* heap = malloc(sizeof(Heap));
+    Heap* heap = (Heap*)malloc(sizeof(Heap));
     if (heap == NULL) {
         return NULL;
     }
 
     heap->capacity = 32;
-    heap->array = malloc(sizeof(NodeHeap) * heap->capacity);
+    heap->array = (NodeHeap*)malloc(sizeof(NodeHeap) * heap->capacity);
     if (heap->array == NULL) {
         free(heap);
         return NULL;
@@ -74,7 +74,7 @@ void pushHeap(Heap* heap, int dist, int city)
 
     if (heap->len == heap->capacity) {
         size_t newCap = heap->capacity * 2;
-        NodeHeap* newArr = realloc(heap->array, sizeof(NodeHeap) * newCap);
+        NodeHeap* newArr = (NodeHeap*)realloc(heap->array, sizeof(NodeHeap) * newCap);
         if (newArr == NULL) {
             return;
         }
@@ -107,7 +107,7 @@ void cleanHeap(Heap** heap)
         return;
     }
 
-    free((*heap)->array);
-    free(*heap);
+    free((void*)(*heap)->array);
+    free((void*)*heap);
     *heap = NULL;
 }

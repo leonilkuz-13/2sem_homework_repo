@@ -31,8 +31,8 @@ void load(Avl* tree, const char* fileName)
         }
         err = true;
     }
-    fclose(file);
-    printf("Loaded %d airports.\n\n", tree->size);
+    (void)fclose(file);
+    (void)printf("Loaded %d airports.\n\n", tree->size);
 }
 
 void handleFind(Avl* tree, char* cmd)
@@ -40,9 +40,9 @@ void handleFind(Avl* tree, char* cmd)
     char* code = cmd + 5;
     Node* ptr = find(tree, code);
     if (ptr) {
-        printf("%s -> %s\n\n", ptr->code, ptr->fullName);
+        (void)printf("%s -> %s\n\n", ptr->code, ptr->fullName);
     } else {
-        printf("Airport '%s' not found.\n\n", code);
+        (void)printf("Airport '%s' not found.\n\n", code);
     }
 }
 
@@ -56,11 +56,11 @@ void handleAdd(Avl* tree, char* cmd)
         tree->root = add(tree->root, data, split + 1, &err);
         if (err) {
             tree->size++;
-            puts("Added.");
-            puts("");
+            (void)puts("Added.");
+            (void)puts("");
         } else {
-            puts("Error: Airport already exists.");
-            puts("");
+            (void)puts("Error: Airport already exists.");
+            (void)puts("");
         }
     }
 }
@@ -72,11 +72,11 @@ void handleDelete(Avl* tree, char* cmd)
         bool err = true;
         tree->root = delete (tree->root, code, &err);
         tree->size--;
-        puts("Deleted.");
-        puts("");
+        (void)puts("Deleted.");
+        (void)puts("");
     } else {
-        puts("Error: Code not found.");
-        puts("");
+        (void)puts("Error: Code not found.");
+        (void)puts("");
     }
 }
 
@@ -87,14 +87,14 @@ void save(Node* root, FILE* file)
     }
 
     save(root->left, file);
-    fprintf(file, "%s %s\n", root->code, root->fullName);
+    (void)fprintf(file, "%s %s\n", root->code, root->fullName);
     save(root->right, file);
 }
 
 int main(int argc, char* argv[])
 {
     if (argc < 2) {
-        puts("Usage: ./utility_airports ../src/airports.txt");
+        (void)puts("Usage: ./utility_airports ../src/airports.txt");
         return 1;
     }
 
@@ -107,7 +107,7 @@ int main(int argc, char* argv[])
 
     char cmd[256];
     while (true) {
-        puts("> ");
+        (void)puts("> ");
         if (!fgets(cmd, sizeof(cmd), stdin)) {
             break;
         }
@@ -115,7 +115,8 @@ int main(int argc, char* argv[])
 
         if (strncmp(cmd, "quit", 4) == 0) {
             break;
-        } else if (strncmp(cmd, "find ", 5) == 0) {
+        }
+        if (strncmp(cmd, "find ", 5) == 0) {
             handleFind(tree, cmd);
         } else if (strncmp(cmd, "add ", 4) == 0) {
             handleAdd(tree, cmd);
@@ -125,12 +126,12 @@ int main(int argc, char* argv[])
             FILE* out = fopen(argv[1], "w");
             if (out) {
                 save(tree->root, out);
-                fclose(out);
-                printf("Saved %d records.\n\n", tree->size);
+                (void)fclose(out);
+                (void)printf("Saved %d records.\n\n", tree->size);
             }
         } else if (strlen(cmd) > 0) {
-            puts("Unknown command.");
-            puts("");
+            (void)puts("Unknown command.");
+            (void)puts("");
         }
     }
 

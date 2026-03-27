@@ -10,8 +10,8 @@ int testsFailed = 0;
 void checkStr(const char* testName, const char* expected, const char* actual)
 {
     if (actual == NULL || strcmp(expected, actual) != 0) {
-        fprintf(stderr, "FAILED: %s | expected=%s actual=%s\n", testName, expected,
-                actual ? actual : "NULL");
+        (void)fprintf(stderr, "FAILED: %s | expected=%s actual=%s\n", testName, expected,
+                      actual ? actual : "NULL");
         testsFailed++;
     } else {
         testsPassed++;
@@ -21,7 +21,7 @@ void checkStr(const char* testName, const char* expected, const char* actual)
 void checkBool(const char* testName, bool expected, bool actual)
 {
     if (expected != actual) {
-        fprintf(stderr, "FAILED: %s | expected=%d actual=%d\n", testName, expected, actual);
+        (void)fprintf(stderr, "FAILED: %s | expected=%d actual=%d\n", testName, expected, actual);
         testsFailed++;
     } else {
         testsPassed++;
@@ -31,7 +31,7 @@ void checkBool(const char* testName, bool expected, bool actual)
 void checkPtrNotNull(const char* testName, void* ptr)
 {
     if (ptr == NULL) {
-        fprintf(stderr, "FAILED: %s | pointer is NULL\n", testName);
+        (void)fprintf(stderr, "FAILED: %s | pointer is NULL\n", testName);
         testsFailed++;
     } else {
         testsPassed++;
@@ -41,7 +41,7 @@ void checkPtrNotNull(const char* testName, void* ptr)
 void checkPtrNull(const char* testName, void* ptr)
 {
     if (ptr != NULL) {
-        fprintf(stderr, "FAILED: %s | pointer is NOT NULL\n", testName);
+        (void)fprintf(stderr, "FAILED: %s | pointer is NOT NULL\n", testName);
         testsFailed++;
     } else {
         testsPassed++;
@@ -56,8 +56,13 @@ void testAVLInsertEmpty()
 
     checkBool("insert empty error", true, error);
     checkPtrNotNull("insert empty root", root);
-    if (root)
+    if (root) {
         checkStr("insert empty code", "AMS", root->code);
+    }
+
+    if (root) {
+        freeNode(root);
+    }
 }
 
 void testAVLInsertDuplicate()
@@ -69,6 +74,10 @@ void testAVLInsertDuplicate()
     root = add(root, "AMS", "Duplicate", &error);
 
     checkBool("duplicate error flag", false, error);
+
+    if (root) {
+        freeNode(root);
+    }
 }
 
 void testDeleteSingleNode()
@@ -92,6 +101,10 @@ void testDeleteNotFound()
     root = delete (root, "SVO", &error);
 
     checkBool("delete not found error", false, error);
+
+    if (root) {
+        freeNode(root);
+    }
 }
 
 void testFindExisting()
@@ -99,17 +112,19 @@ void testFindExisting()
     bool error = true;
     Avl* tree = initTree();
 
-    tree->root = add(tree->root, "AMS", "Amsterdam Airport", &error);
-    tree->root = add(tree->root, "JFK", "John F Kennedy", &error);
+    if (tree) {
+        tree->root = add(tree->root, "AMS", "Amsterdam Airport", &error);
+        tree->root = add(tree->root, "JFK", "John F Kennedy", &error);
 
-    Node* result = find(tree, "AMS");
+        Node* result = find(tree, "AMS");
 
-    checkPtrNotNull("find existing", result);
-    if (result) {
-        checkStr("find content check", "AMS", result->code);
+        checkPtrNotNull("find existing", result);
+        if (result) {
+            checkStr("find content check", "AMS", result->code);
+        }
+
+        avlFree(&tree);
     }
-
-    avlFree(&tree);
 }
 
 void testFindNotExisting()
@@ -117,12 +132,14 @@ void testFindNotExisting()
     bool error = true;
     Avl* tree = initTree();
 
-    tree->root = add(tree->root, "AMS", "Amsterdam Airport", &error);
-    Node* result = find(tree, "SVO");
+    if (tree) {
+        tree->root = add(tree->root, "AMS", "Amsterdam Airport", &error);
+        Node* result = find(tree, "SVO");
 
-    checkPtrNull("find not existing", result);
+        checkPtrNull("find not existing", result);
 
-    avlFree(&tree);
+        avlFree(&tree);
+    }
 }
 
 void testFindAfterDelete()
@@ -130,14 +147,16 @@ void testFindAfterDelete()
     bool error = true;
     Avl* tree = initTree();
 
-    tree->root = add(tree->root, "AMS", "Amsterdam Airport", &error);
-    tree->root = delete (tree->root, "AMS", &error);
+    if (tree) {
+        tree->root = add(tree->root, "AMS", "Amsterdam Airport", &error);
+        tree->root = delete (tree->root, "AMS", &error);
 
-    Node* result = find(tree, "AMS");
+        Node* result = find(tree, "AMS");
 
-    checkPtrNull("find after delete", result);
+        checkPtrNull("find after delete", result);
 
-    avlFree(&tree);
+        avlFree(&tree);
+    }
 }
 
 int runTests()
@@ -152,10 +171,10 @@ int runTests()
     testFindNotExisting();
     testFindAfterDelete();
 
-    printf("\nTests passed: %d\nTests failed: %d\n", testsPassed, testsFailed);
+    (void)printf("\nTests passed: %d\nTests failed: %d\n", testsPassed, testsFailed);
 
     if (testsFailed == 0) {
-        puts("ALL TESTS PASSED");
+        (void)puts("ALL TESTS PASSED");
         return 0;
     }
     return 1;

@@ -1,0 +1,12 @@
+ID,Name,Age,Salary,Join Date,Notes
+1,Alice,30,50000,2020-01-15,"Regular employee"
+2,Bob,25,60000,2019-03-20,"Has ""quotes"" in text"
+3,Charlie,35,75000,2018-11-02,"Field with, comma"
+4,David,,,2021-05-10,"Empty age and salary"
+5,Eve,28,80000,,"Empty join date"
+6,Frank,40,90000.50,2022-02-28,"Number with decimal"
+7,,,,"Missing ID and name"
+8,Grace,32,45000,2020-12-01,"Trailing spaces   "
+9,"  Henry  ",29,55000,2019-07-15,"Spaces in quotes"
+10,Isabella,33,95000,2023-01-01,"Very long field that might cause line wrapping but we don't wrap, just test column width"
+11,,,,

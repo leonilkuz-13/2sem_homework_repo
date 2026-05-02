@@ -1,6 +1,6 @@
 #include "struct.h"
 
-bool testInitField()
+bool testInitField(void)
 {
     Field* field = initField();
     if (field == NULL) {
@@ -19,7 +19,7 @@ bool testInitField()
     return valid;
 }
 
-bool testInitRow()
+bool testInitRow(void)
 {
     size_t index = 5;
     Row* row = initRow(index);
@@ -38,7 +38,7 @@ bool testInitRow()
     return valid;
 }
 
-bool testClearRow()
+bool testClearRow(void)
 {
     Row* row = initRow(0);
     if (!row) {
@@ -68,7 +68,7 @@ bool testClearRow()
     return valid;
 }
 
-bool testClearRowNull()
+bool testClearRowNull(void)
 {
     Row* row = NULL;
     clearRow(&row);
@@ -76,7 +76,7 @@ bool testClearRowNull()
     return true;
 }
 
-bool testClearRowTwice()
+bool testClearRowTwice(void)
 {
     Row* row = initRow(0);
     if (!row) {
@@ -88,7 +88,7 @@ bool testClearRowTwice()
     return true;
 }
 
-bool testInitBoard()
+bool testInitBoard(void)
 {
     Board* board = initBoard();
     if (board == NULL) {
@@ -105,7 +105,7 @@ bool testInitBoard()
     return valid;
 }
 
-bool testClearBoard()
+bool testClearBoard(void)
 {
     Board* board = initBoard();
     if (!board) {
@@ -137,7 +137,7 @@ bool testClearBoard()
     return valid;
 }
 
-bool testClearBoardNull()
+bool testClearBoardNull(void)
 {
     Board* board = NULL;
     clearBoard(&board);
@@ -145,7 +145,7 @@ bool testClearBoardNull()
     return true;
 }
 
-bool testClearBoardTwice()
+bool testClearBoardTwice(void)
 {
     Board* board = initBoard();
     if (!board) { // добавлены скобки
@@ -157,7 +157,7 @@ bool testClearBoardTwice()
     return true;
 }
 
-void runStructTests()
+void runStructTests(void)
 {
     bool result = true;
     result = result && testInitField();
@@ -177,7 +177,7 @@ void runStructTests()
     }
 }
 
-int main()
+int main(void)
 {
     runStructTests();
     return 0;

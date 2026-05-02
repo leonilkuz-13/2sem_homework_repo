@@ -1,4 +1,5 @@
 #include "parser.h"
+#include <string.h>
 
 static bool checkField(Field* field, const char* expectedStr, FieldType expectedType,
                        size_t expectedCol)
@@ -18,7 +19,7 @@ static bool checkField(Field* field, const char* expectedStr, FieldType expected
     return (field->type == expectedType && field->colNum == expectedCol);
 }
 
-bool testDetectType()
+bool testDetectType(void)
 {
     bool allPassed = true;
 
@@ -67,7 +68,7 @@ bool testDetectType()
     return allPassed;
 }
 
-bool testParseSimple1()
+bool testParseSimple1(void)
 {
     Row* row = initRow(0);
     bool success = true;
@@ -109,7 +110,7 @@ bool testParseSimple1()
     return success;
 }
 
-bool testParseSimple2()
+bool testParseSimple2(void)
 {
     Row* row = initRow(0);
     bool success = true;
@@ -157,7 +158,7 @@ bool testParseSimple2()
     return success;
 }
 
-bool testParseSimple()
+bool testParseSimple(void)
 {
     bool success = testParseSimple1() && testParseSimple2();
 
@@ -169,7 +170,7 @@ bool testParseSimple()
     return success;
 }
 
-bool testParseQuoted1()
+bool testParseQuoted1(void)
 {
     Row* row = initRow(0);
     bool success = true;
@@ -208,7 +209,7 @@ bool testParseQuoted1()
     return success;
 }
 
-bool testParseQuoted2()
+bool testParseQuoted2(void)
 {
     Row* row = initRow(0);
     bool success = true;
@@ -245,7 +246,7 @@ bool testParseQuoted2()
     return success;
 }
 
-bool testParseQuoted()
+bool testParseQuoted(void)
 {
     bool success = testParseQuoted1() && testParseQuoted2();
     if (success) {
@@ -256,7 +257,7 @@ bool testParseQuoted()
     return success;
 }
 
-bool testParseError()
+bool testParseError(void)
 {
     Row* row = initRow(0);
     bool success = true;
@@ -282,7 +283,7 @@ bool testParseError()
     return success;
 }
 
-bool testParseEdge()
+bool testParseEdge(void)
 {
     Row* row = initRow(0);
     bool success = true;
@@ -361,7 +362,7 @@ bool testParseEdge()
     return success;
 }
 
-void runParserTests()
+void runParserTests(void)
 {
     bool result = true;
     result = result && testDetectType();
@@ -377,7 +378,7 @@ void runParserTests()
     }
 }
 
-int main()
+int main(void)
 {
     runParserTests();
     return 0;

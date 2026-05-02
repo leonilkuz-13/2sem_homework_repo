@@ -1,6 +1,6 @@
 #include "struct.h"
 
-Field* initField()
+Field* initField(void)
 {
     Field* field = calloc(1, sizeof(Field));
     if (field == NULL) {
@@ -41,7 +41,7 @@ void clearRow(Row** row)
     *row = NULL;
 }
 
-Board* initBoard()
+Board* initBoard(void)
 {
     Board* board = calloc(1, sizeof(Board));
     if (board == NULL) {

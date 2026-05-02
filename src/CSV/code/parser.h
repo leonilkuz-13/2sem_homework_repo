@@ -1,7 +1,9 @@
 #pragma once
-#include "struct.h"
-#include <ctype.h>
-#include <string.h>
 
+#include "struct.h"
+
+// определения типа строки
 FieldType detectType(char* str);
+
+// сам парсинг
 bool parse(Row** row, char* line);

@@ -2,13 +2,11 @@
 
 Field* initField()
 {
-    Field* field = malloc(sizeof(Field));
+    Field* field = calloc(1, sizeof(Field));
     if (field == NULL) {
         return NULL;
     }
-    field->colNum = 0;
-    field->field = NULL;
-    field->len = 0;
+
     field->type = TypeNone;
 
     return field;
@@ -45,14 +43,10 @@ void clearRow(Row** row)
 
 Board* initBoard()
 {
-    Board* board = malloc(sizeof(Board));
+    Board* board = calloc(1, sizeof(Board));
     if (board == NULL) {
         return NULL;
     }
-
-    board->maxCol = 0;
-    board->rowsCnt = 0;
-    board->rows = NULL;
 
     return board;
 }

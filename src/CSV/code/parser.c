@@ -1,4 +1,6 @@
 #include "parser.h"
+#include <ctype.h>
+#include <string.h>
 
 FieldType detectType(char* str)
 {

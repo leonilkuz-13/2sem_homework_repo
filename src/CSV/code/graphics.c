@@ -1,6 +1,6 @@
 #include "graphics.h"
 
-bool ordinaryLine(FILE* file, const size_t* widths, Board* board, char symbol)
+bool isOrdinaryLine(FILE* file, const size_t* widths, Board* board, char symbol)
 {
     if (widths == NULL || board == NULL || (symbol != '-' && symbol != '=')) {
         return false;
@@ -53,7 +53,7 @@ bool writeField(FILE* file, Field* field, size_t col)
     return true;
 }
 
-void graphics(Board* board)
+void printGraphics(Board* board)
 {
     size_t* widths = maxFieldWidth(board);
     if (widths == NULL) {
@@ -67,7 +67,7 @@ void graphics(Board* board)
         return;
     }
 
-    if (!ordinaryLine(file, widths, board, '=')) {
+    if (!isOrdinaryLine(file, widths, board, '=')) {
         (void)fclose(file);
         free(widths);
         return;
@@ -87,7 +87,7 @@ void graphics(Board* board)
     }
     (void)fputc('\n', file);
 
-    if (!ordinaryLine(file, widths, board, '=')) {
+    if (!isOrdinaryLine(file, widths, board, '=')) {
         (void)fclose(file);
         free(widths);
         return;
@@ -107,7 +107,7 @@ void graphics(Board* board)
             writeField(file, found, widths[col]);
         }
         (void)fputc('\n', file);
-        ordinaryLine(file, widths, board, '-');
+        isOrdinaryLine(file, widths, board, '-');
     }
 
     (void)fclose(file);

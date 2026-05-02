@@ -1,4 +1,5 @@
 #include "tools.h"
+#include "parser.h"
 
 char* read(FILE* file)
 {
@@ -44,7 +45,7 @@ char* read(FILE* file)
     return buffer;
 }
 
-bool makeboard(Board* board)
+bool makeBoard(Board* board)
 {
     FILE* file = fopen("input.csv", "r");
     if (file == NULL) {

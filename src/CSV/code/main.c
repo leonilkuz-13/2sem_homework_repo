@@ -6,11 +6,11 @@ int main(void)
     if (!board) {
         return 1;
     }
-    if (!makeboard(board)) {
+    if (!makeBoard(board)) {
         clearBoard(&board);
         return 1;
     }
-    graphics(board);
+    printGraphics(board);
     clearBoard(&board);
     return 0;
 }
